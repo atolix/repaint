@@ -1,5 +1,7 @@
 import { createProgram } from "./shader";
 import vertexSource from "./shaders/fullscreen.vert?raw";
+import postFragmentSource from "./shaders/post.frag?raw";
+import { Framebuffer } from "./framebuffer";
 
 export class Renderer {
   private gl: WebGL2RenderingContext;
@@ -7,6 +9,9 @@ export class Renderer {
   private canvas: HTMLCanvasElement;
   private mouse = { x: 0, y: 0 };
   private debugMode = 0;
+
+  private sceneFramebuffer: Framebuffer;
+  private postProgram: WebGLProgram;
 
   private uResolution: WebGLUniformLocation | null;
   private uTime: WebGLUniformLocation | null;
@@ -33,6 +38,9 @@ export class Renderer {
         console.log("debug mode:", this.debugMode);
       }
     })
+
+    this.sceneFramebuffer = new Framebuffer(gl);
+    this.postProgram = createProgram(gl, vertexSource, postFragmentSource);
 
     this.uMouse = gl.getUniformLocation(this.program, "u_mouse");
     this.canvas.addEventListener("pointermove", (event) => {
@@ -78,12 +86,31 @@ export class Renderer {
   render(time: number) {
     this.resize();
 
+    this.sceneFramebuffer.resize(this.canvas.width, this.canvas.height);
+
+    this.sceneFramebuffer.bind();
+
     this.gl.useProgram(this.program);
 
     this.gl.uniform2f(this.uResolution, this.canvas.width, this.canvas.height);
     this.gl.uniform1f(this.uTime, time * 0.001);
     this.gl.uniform1i(this.uDebugMode, this.debugMode);
     this.gl.uniform2f(this.uMouse, this.mouse.x, this.mouse.y);
+
+    this.gl.drawArrays(this.gl.TRIANGLES, 0, 3);
+
+    this.sceneFramebuffer.unbind();
+    this.gl.useProgram(this.postProgram);
+    this.gl.activeTexture(this.gl.TEXTURE0);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.sceneFramebuffer.texture);
+
+    const uScene = this.gl.getUniformLocation(this.postProgram, "u_scene");
+    const uResolution = this.gl.getUniformLocation(this.postProgram, "u_resolution");
+    const uTime = this.gl.getUniformLocation(this.postProgram, "u_time");
+
+    this.gl.uniform1i(uScene, 0);
+    this.gl.uniform2f(uResolution, this.canvas.width, this.canvas.height);
+    this.gl.uniform1f(uTime, time * 0.001);
 
     this.gl.drawArrays(this.gl.TRIANGLES, 0, 3);
   }
