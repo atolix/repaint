@@ -1,0 +1,95 @@
+import { createProgram } from "./shader";
+
+const vertexSource = `#version 300 es
+
+const vec2 positions[3] = vec2[3](
+  vec2(-1.0, -1.0),
+  vec2( 3.0, -1.0),
+  vec2(-1.0,  3.0)
+);
+
+void main() {
+  gl_Position = vec4(
+    positions[gl_VertexID],
+    0.0,
+    1.0
+  );
+}
+`;
+
+export class Renderer {
+  private gl: WebGL2RenderingContext;
+  private program: WebGLProgram;
+
+  private uResolution: WebGLUniformLocation | null;
+  private uTime: WebGLUniformLocation | null;
+
+  constructor(
+    private canvas: HTMLCanvasElement,
+    fragmentSource: string
+  ) {
+    const gl = canvas.getContext("webgl2");
+
+    if (!gl) {
+      throw new Error("webgl2 not supported");
+    }
+
+    this.gl = gl;
+
+    this.program = createProgram(
+      gl,
+      vertexSource,
+      fragmentSource
+    );
+
+    this.uResolution = gl.getUniformLocation(
+      this.program,
+      "u_resolution"
+    );
+
+    this.uTime = gl.getUniformLocation(
+      this.program,
+      "u_time"
+    );
+  }
+
+  resize() {
+    const dpr = window.devicePixelRatio || 1;
+
+    this.canvas.width =
+      this.canvas.clientWidth * dpr;
+
+    this.canvas.height =
+      this.canvas.clientHeight * dpr;
+
+    this.gl.viewport(
+      0,
+      0,
+      this.canvas.width,
+      this.canvas.height
+    );
+  }
+
+  render(time: number) {
+    this.resize();
+
+    this.gl.useProgram(this.program);
+
+    this.gl.uniform2f(
+      this.uResolution,
+      this.canvas.width,
+      this.canvas.height
+    );
+
+    this.gl.uniform1f(
+      this.uTime,
+      time * 0.001
+    );
+
+    this.gl.drawArrays(
+      this.gl.TRIANGLES,
+      0,
+      3
+    );
+  }
+}
