@@ -4,12 +4,13 @@ import vertexSource from "./shaders/fullscreen.vert?raw";
 export class Renderer {
   private gl: WebGL2RenderingContext;
   private program: WebGLProgram;
+  private canvas: HTMLCanvasElement;
 
   private uResolution: WebGLUniformLocation | null;
   private uTime: WebGLUniformLocation | null;
 
   constructor(
-    private canvas: HTMLCanvasElement,
+    canvas: HTMLCanvasElement,
     fragmentSource: string
   ) {
     const gl = canvas.getContext("webgl2");
@@ -19,6 +20,7 @@ export class Renderer {
     }
 
     this.gl = gl;
+    this.canvas = canvas;
 
     this.program = createProgram(
       gl,
