@@ -6,10 +6,12 @@ export class Renderer {
   private program: WebGLProgram;
   private canvas: HTMLCanvasElement;
   private mouse = { x: 0, y: 0 };
+  private debugMode = 0;
 
   private uResolution: WebGLUniformLocation | null;
   private uTime: WebGLUniformLocation | null;
   private uMouse: WebGLUniformLocation | null;
+  private uDebugMode: WebGLUniformLocation | null;
 
   constructor(canvas: HTMLCanvasElement, fragmentSource: string) {
     const gl = canvas.getContext("webgl2");
@@ -23,8 +25,16 @@ export class Renderer {
 
     this.uResolution = gl.getUniformLocation(this.program, "u_resolution");
     this.uTime = gl.getUniformLocation(this.program, "u_time");
-    this.uMouse = gl.getUniformLocation(this.program, "u_mouse");
 
+    this.uDebugMode = gl.getUniformLocation(this.program, "u_debugMode");
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "d") {
+        this.debugMode = (this.debugMode + 1) % 4;
+        console.log("debug mode:", this.debugMode);
+      }
+    })
+
+    this.uMouse = gl.getUniformLocation(this.program, "u_mouse");
     this.canvas.addEventListener("pointermove", (event) => {
       const rect = this.canvas.getBoundingClientRect()
 
@@ -38,6 +48,7 @@ export class Renderer {
 
     this.uResolution = this.gl.getUniformLocation(program, "u_resolution")
     this.uTime = this.gl.getUniformLocation(program, "u_time")
+    this.uDebugMode = this.gl.getUniformLocation(program, "u_debugMode")
 
     return program
   }
@@ -71,6 +82,7 @@ export class Renderer {
 
     this.gl.uniform2f(this.uResolution, this.canvas.width, this.canvas.height);
     this.gl.uniform1f(this.uTime, time * 0.001);
+    this.gl.uniform1i(this.uDebugMode, this.debugMode);
     this.gl.uniform2f(this.uMouse, this.mouse.x, this.mouse.y);
 
     this.gl.drawArrays(this.gl.TRIANGLES, 0, 3);
