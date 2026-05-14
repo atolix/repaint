@@ -37,6 +37,40 @@ export class Renderer {
     );
   }
 
+  private createProgram(fragmentSource: string) {
+    const program = createProgram(
+      this.gl,
+      vertexSource,
+      fragmentSource
+    )
+
+    this.uResolution = this.gl.getUniformLocation(
+      program,
+      "u_resolution"
+    )
+
+    this.uTime = this.gl.getUniformLocation(
+      program,
+      "u_time"
+    )
+
+    return program
+  }
+
+  updateFragmentShader(fragmentSource: string) {
+    try {
+      const nextProgram = this.createProgram(fragmentSource)
+
+      this.gl.deleteProgram(this.program)
+      this.program = nextProgram
+
+      console.clear()
+      console.log('shader compiled')
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
   resize() {
     const dpr = window.devicePixelRatio || 1;
 
