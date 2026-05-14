@@ -5,9 +5,7 @@ export function createShader(
 ) {
   const shader = gl.createShader(type);
 
-  if (!shader) {
-    throw new Error("failed to create shader");
-  }
+  if (!shader) throw new Error("failed to create shader");
 
   gl.shaderSource(shader, source);
   gl.compileShader(shader);
@@ -29,25 +27,13 @@ export function createProgram(
 ) {
   const program = gl.createProgram();
 
-  if (!program) {
-    throw new Error("failed to create program");
-  }
+  if (!program) throw new Error("failed to create program");
 
-  const vertexShader = createShader(
-    gl,
-    gl.VERTEX_SHADER,
-    vertexSource
-  );
-
-  const fragmentShader = createShader(
-    gl,
-    gl.FRAGMENT_SHADER,
-    fragmentSource
-  );
+  const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexSource);
+  const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
 
   gl.attachShader(program, vertexShader);
   gl.attachShader(program, fragmentShader);
-
   gl.linkProgram(program);
 
   if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {

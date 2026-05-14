@@ -9,52 +9,25 @@ export class Renderer {
   private uResolution: WebGLUniformLocation | null;
   private uTime: WebGLUniformLocation | null;
 
-  constructor(
-    canvas: HTMLCanvasElement,
-    fragmentSource: string
-  ) {
+  constructor(canvas: HTMLCanvasElement, fragmentSource: string) {
     const gl = canvas.getContext("webgl2");
 
-    if (!gl) {
-      throw new Error("webgl2 not supported");
-    }
+    if (!gl) throw new Error("webgl2 not supported");
 
     this.gl = gl;
     this.canvas = canvas;
 
-    this.program = createProgram(
-      gl,
-      vertexSource,
-      fragmentSource
-    );
+    this.program = createProgram(gl, vertexSource, fragmentSource);
 
-    this.uResolution = gl.getUniformLocation(
-      this.program,
-      "u_resolution"
-    );
-
-    this.uTime = gl.getUniformLocation(
-      this.program,
-      "u_time"
-    );
+    this.uResolution = gl.getUniformLocation(this.program, "u_resolution");
+    this.uTime = gl.getUniformLocation(this.program, "u_time");
   }
 
   private createProgram(fragmentSource: string) {
-    const program = createProgram(
-      this.gl,
-      vertexSource,
-      fragmentSource
-    )
+    const program = createProgram(this.gl, vertexSource, fragmentSource)
 
-    this.uResolution = this.gl.getUniformLocation(
-      program,
-      "u_resolution"
-    )
-
-    this.uTime = this.gl.getUniformLocation(
-      program,
-      "u_time"
-    )
+    this.uResolution = this.gl.getUniformLocation(program, "u_resolution")
+    this.uTime = this.gl.getUniformLocation(program, "u_time")
 
     return program
   }
@@ -76,18 +49,10 @@ export class Renderer {
   resize() {
     const dpr = window.devicePixelRatio || 1;
 
-    this.canvas.width =
-      this.canvas.clientWidth * dpr;
+    this.canvas.width = this.canvas.clientWidth * dpr;
+    this.canvas.height = this.canvas.clientHeight * dpr;
 
-    this.canvas.height =
-      this.canvas.clientHeight * dpr;
-
-    this.gl.viewport(
-      0,
-      0,
-      this.canvas.width,
-      this.canvas.height
-    );
+    this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
   }
 
   render(time: number) {
@@ -95,21 +60,9 @@ export class Renderer {
 
     this.gl.useProgram(this.program);
 
-    this.gl.uniform2f(
-      this.uResolution,
-      this.canvas.width,
-      this.canvas.height
-    );
+    this.gl.uniform2f(this.uResolution, this.canvas.width, this.canvas.height);
+    this.gl.uniform1f(this.uTime, time * 0.001);
 
-    this.gl.uniform1f(
-      this.uTime,
-      time * 0.001
-    );
-
-    this.gl.drawArrays(
-      this.gl.TRIANGLES,
-      0,
-      3
-    );
+    this.gl.drawArrays(this.gl.TRIANGLES, 0, 3);
   }
 }
