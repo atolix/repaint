@@ -32,17 +32,16 @@ export class Renderer {
     return program
   }
 
-  updateFragmentShader(fragmentSource: string) {
+  updateFragmentShader(fragmentSource: string): string | null {
     try {
       const nextProgram = this.createProgram(fragmentSource)
 
       this.gl.deleteProgram(this.program)
       this.program = nextProgram
 
-      console.clear()
-      console.log('shader compiled')
+      return null
     } catch (error) {
-      console.error(error)
+      return error instanceof Error ? error.message : String(error)
     }
   }
 
