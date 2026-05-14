@@ -1,6 +1,8 @@
-import fragmentSource from "./shaders/main.frag?raw";
+import mainSource from "./shaders/main.frag?raw";
 import { Renderer } from "./renderer";
+import { resolveIncludes } from "./shader-loader";
 
+const fragmentSource = resolveIncludes(mainSource, "./shaders/main.frag");
 const canvas = document.querySelector("#canvas") as HTMLCanvasElement;
 const renderer = new Renderer(canvas, fragmentSource);
 const errorElement = document.querySelector("#error") as HTMLCanvasElement;
@@ -11,7 +13,9 @@ if (import.meta.hot) {
     (module) => {
       if (!module) return;
 
-      const error = renderer.updateFragmentShader(module.default)
+      const error = renderer.updateFragmentShader(
+        resolveIncludes(module.default, "./shaders/main.frag")
+      )
 
       if (error) {
         console.log("error")
