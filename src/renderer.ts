@@ -2,6 +2,7 @@ import { createProgram } from "./shader";
 import vertexSource from "./shaders/fullscreen.vert?raw";
 import postFragmentSource from "./shaders/post.frag?raw";
 import { Framebuffer } from "./framebuffer";
+import { resolveIncludes } from "./shader-loader";
 
 export class Renderer {
   private gl: WebGL2RenderingContext;
@@ -40,7 +41,10 @@ export class Renderer {
     })
 
     this.sceneFramebuffer = new Framebuffer(gl);
-    this.postProgram = createProgram(gl, vertexSource, postFragmentSource);
+    this.postProgram = createProgram(gl, vertexSource, resolveIncludes(
+      postFragmentSource,
+      "./shaders/post.frag"
+    ));
 
     this.uMouse = gl.getUniformLocation(this.program, "u_mouse");
     this.canvas.addEventListener("pointermove", (event) => {
