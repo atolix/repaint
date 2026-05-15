@@ -8,7 +8,6 @@ export class Renderer {
   private gl: WebGL2RenderingContext;
   private program: WebGLProgram;
   private canvas: HTMLCanvasElement;
-  private mouse = { x: 0, y: 0 };
   private debugMode = 0;
 
   private sceneFramebuffer: Framebuffer;
@@ -16,7 +15,6 @@ export class Renderer {
 
   private uResolution: WebGLUniformLocation | null;
   private uTime: WebGLUniformLocation | null;
-  private uMouse: WebGLUniformLocation | null;
   private uDebugMode: WebGLUniformLocation | null;
 
   constructor(canvas: HTMLCanvasElement, fragmentSource: string) {
@@ -45,14 +43,6 @@ export class Renderer {
       postFragmentSource,
       "./shaders/post.frag"
     ));
-
-    this.uMouse = gl.getUniformLocation(this.program, "u_mouse");
-    this.canvas.addEventListener("pointermove", (event) => {
-      const rect = this.canvas.getBoundingClientRect()
-
-      this.mouse.x = (event.clientX - rect.left) * window.devicePixelRatio
-      this.mouse.y = (rect.height - (event.clientY - rect.top)) * window.devicePixelRatio
-    })
   }
 
   private createProgram(fragmentSource: string) {
@@ -99,7 +89,6 @@ export class Renderer {
     this.gl.uniform2f(this.uResolution, this.canvas.width, this.canvas.height);
     this.gl.uniform1f(this.uTime, time * 0.001);
     this.gl.uniform1i(this.uDebugMode, this.debugMode);
-    this.gl.uniform2f(this.uMouse, this.mouse.x, this.mouse.y);
 
     this.gl.drawArrays(this.gl.TRIANGLES, 0, 3);
 
