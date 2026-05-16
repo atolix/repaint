@@ -1,4 +1,4 @@
-import { Framebuffer } from "./framebuffer";
+import { Framebuffer } from "../framebuffer";
 
 export type UniformValue =
   | { type: "1f"; value: number }

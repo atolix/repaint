@@ -4,7 +4,7 @@ import { Framebuffer } from "./framebuffer";
 import { resolveIncludes } from "./shader-loader";
 import outputSource from "./shaders/output.frag?raw";
 import { sendLogPipeline } from "./logger";
-import { drawPass } from "./pass";
+import { drawPass } from "./pass/draw";
 
 type PostPass = {
   name: string;
