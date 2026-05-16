@@ -1,4 +1,5 @@
 import mainSource from "./shaders/main.frag?raw";
+import invertSource from "./shaders/effects/invert.frag?raw";
 import { Renderer } from "./renderer";
 import { resolveIncludes } from "./gl/include";
 import { reloadShader } from "./hmr";
@@ -6,7 +7,7 @@ import { createPostProcessPasses } from "./pipeline/post-process-config";
 
 const canvas = document.querySelector("#canvas") as HTMLCanvasElement;
 const sceneSource = resolveIncludes(mainSource, "./shaders/main.frag");
-const renderer = new Renderer(canvas, sceneSource, createPostProcessPasses());
+const renderer = new Renderer(canvas, sceneSource, createPostProcessPasses(invertSource));
 
 if (import.meta.hot) {
   import.meta.hot.accept("./shaders/main.frag?raw", (module) => {
