@@ -1,4 +1,4 @@
-const shaderModules = import.meta.glob("./shaders/**/*.{glsl,frag,vert}", {
+const shaderModules = import.meta.glob("./shaders/**/*.glsl", {
   query: "?raw",
   import: "default",
   eager: true,
