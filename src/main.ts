@@ -5,9 +5,19 @@ import { resolveIncludes } from "./gl/include";
 import { reloadShader } from "./hmr";
 
 const canvas = document.querySelector("#canvas") as HTMLCanvasElement;
-const fragmentSource = resolveIncludes(mainSource, "./shaders/main.frag");
+const sceneSource = resolveIncludes(mainSource, "./shaders/main.frag");
 const invertFragmentSource = resolveIncludes(invertSource, "./shaders/effects/invert.frag.frag");
-const renderer = new Renderer(canvas, fragmentSource, invertFragmentSource);
+
+const postPasses = [
+  {
+    name: "invert",
+    source: invertFragmentSource,
+    enabled: true,
+  },
+]
+
+const renderer = new Renderer(canvas, sceneSource, postPasses);
+
 const errorElement = document.querySelector("#error") as HTMLDivElement;
 
 if (import.meta.hot) {

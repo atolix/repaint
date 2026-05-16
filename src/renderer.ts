@@ -21,8 +21,12 @@ export class Renderer {
 
   constructor(
     canvas: HTMLCanvasElement,
-    fragmentSource: string,
-    postFragmentSource: string
+    sceneSource: string,
+    postPasses: {
+      name: string;
+      source: string;
+      enabled: boolean;
+    }[]
   ) {
     const gl = canvas.getContext("webgl2");
 
@@ -31,7 +35,7 @@ export class Renderer {
     this.gl = gl;
     this.canvas = canvas;
 
-    this.program = createProgram(gl, vertexSource, fragmentSource);
+    this.program = createProgram(gl, vertexSource, sceneSource);
 
     window.addEventListener("keydown", (event) => {
       if (event.key === "d") {
@@ -45,13 +49,11 @@ export class Renderer {
       outputSource, "./shaders/output.frag"
     ))
 
-    this.postPasses = [
-      {
-        name: "invert",
-        enabled: true,
-        program: createProgram(gl, vertexSource, postFragmentSource)
-      }
-    ]
+    this.postPasses = postPasses.map((pass) => ({
+      name: pass.name,
+      enabled: pass.enabled,
+      program: createProgram(gl, vertexSource, pass.source),
+    }));
 
     this.postFramebuffers = [
       new Framebuffer(gl),
