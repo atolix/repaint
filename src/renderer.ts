@@ -4,6 +4,32 @@ import postFragmentSource from "./shaders/post.frag?raw";
 import { Framebuffer } from "./framebuffer";
 import { resolveIncludes } from "./shader-loader";
 
+type UniformValue =
+  | {
+    type: "1f";
+    value: number;
+  }
+  | {
+    type: "1i";
+    value: number;
+  }
+  | {
+    type: "2f";
+    value: [number, number];
+  };
+
+type TextureUniform = {
+  name: string;
+  texture: WebGLTexture;
+};
+
+type FullscreenPassOptions = {
+  program: WebGLProgram;
+  framebuffer?: Framebuffer | null;
+  uniforms?: Record<string, UniformValue>;
+  textures?: TextureUniform[];
+};
+
 export class Renderer {
   private gl: WebGL2RenderingContext;
   private program: WebGLProgram;
@@ -12,10 +38,6 @@ export class Renderer {
 
   private sceneFramebuffer: Framebuffer;
   private postProgram: WebGLProgram;
-
-  private uResolution: WebGLUniformLocation | null;
-  private uTime: WebGLUniformLocation | null;
-  private uDebugMode: WebGLUniformLocation | null;
 
   constructor(canvas: HTMLCanvasElement, fragmentSource: string) {
     const gl = canvas.getContext("webgl2");
@@ -27,10 +49,6 @@ export class Renderer {
 
     this.program = createProgram(gl, vertexSource, fragmentSource);
 
-    this.uResolution = gl.getUniformLocation(this.program, "u_resolution");
-    this.uTime = gl.getUniformLocation(this.program, "u_time");
-
-    this.uDebugMode = gl.getUniformLocation(this.program, "u_debugMode");
     window.addEventListener("keydown", (event) => {
       if (event.key === "d") {
         this.debugMode = (this.debugMode + 1) % 4;
@@ -46,13 +64,61 @@ export class Renderer {
   }
 
   private createProgram(fragmentSource: string) {
-    const program = createProgram(this.gl, vertexSource, fragmentSource)
+    return createProgram(this.gl, vertexSource, fragmentSource)
+  }
 
-    this.uResolution = this.gl.getUniformLocation(program, "u_resolution")
-    this.uTime = this.gl.getUniformLocation(program, "u_time")
-    this.uDebugMode = this.gl.getUniformLocation(program, "u_debugMode")
+  private drawFullscreenPass(options: FullscreenPassOptions) {
+    const {
+      program,
+      framebuffer = null,
+      uniforms = {},
+      textures = [],
+    } = options;
 
-    return program
+    if (framebuffer) {
+      framebuffer.bind();
+    } else {
+      this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+    }
+
+    this.gl.useProgram(program);
+
+    for (const [name, uniform] of Object.entries(uniforms)) {
+      const location = this.gl.getUniformLocation(program, name);
+
+      if (location === null) continue;
+
+      switch (uniform.type) {
+        case "1f":
+          this.gl.uniform1f(location, uniform.value);
+          break;
+        case "1i":
+          this.gl.uniform1i(location, uniform.value);
+          break;
+        case "2f":
+          this.gl.uniform2f(
+            location,
+            uniform.value[0],
+            uniform.value[1]
+          );
+          break;
+      }
+    }
+
+    textures.forEach((textureUniform, index) => {
+      const location = this.gl.getUniformLocation(
+        program,
+        textureUniform.name
+      );
+
+      if (location === null) return;
+
+      this.gl.activeTexture(this.gl.TEXTURE0 + index);
+      this.gl.bindTexture(this.gl.TEXTURE_2D, textureUniform.texture);
+      this.gl.uniform1i(location, index);
+    });
+
+    this.gl.drawArrays(this.gl.TRIANGLES, 0, 3);
   }
 
   updateFragmentShader(fragmentSource: string): string | null {
@@ -80,31 +146,41 @@ export class Renderer {
   render(time: number) {
     this.resize();
 
-    this.sceneFramebuffer.resize(this.canvas.width, this.canvas.height);
+    this.sceneFramebuffer.resize(
+      this.canvas.width,
+      this.canvas.height
+    );
 
-    this.sceneFramebuffer.bind();
+    const t = time * 0.001;
+    const resolution: [number, number] = [
+      this.canvas.width,
+      this.canvas.height,
+    ];
 
-    this.gl.useProgram(this.program);
+    this.drawFullscreenPass({
+      program: this.program,
+      framebuffer: this.sceneFramebuffer,
+      uniforms: {
+        u_time: { type: "1f", value: t },
+        u_debugMode: { type: "1i", value: this.debugMode },
+        u_resolution: { type: "2f", value: resolution },
+      },
+    });
 
-    this.gl.uniform2f(this.uResolution, this.canvas.width, this.canvas.height);
-    this.gl.uniform1f(this.uTime, time * 0.001);
-    this.gl.uniform1i(this.uDebugMode, this.debugMode);
-
-    this.gl.drawArrays(this.gl.TRIANGLES, 0, 3);
-
-    this.sceneFramebuffer.unbind();
-    this.gl.useProgram(this.postProgram);
-    this.gl.activeTexture(this.gl.TEXTURE0);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.sceneFramebuffer.texture);
-
-    const uScene = this.gl.getUniformLocation(this.postProgram, "u_scene");
-    const uResolution = this.gl.getUniformLocation(this.postProgram, "u_resolution");
-    const uTime = this.gl.getUniformLocation(this.postProgram, "u_time");
-
-    this.gl.uniform1i(uScene, 0);
-    this.gl.uniform2f(uResolution, this.canvas.width, this.canvas.height);
-    this.gl.uniform1f(uTime, time * 0.001);
-
-    this.gl.drawArrays(this.gl.TRIANGLES, 0, 3);
+    this.drawFullscreenPass({
+      program: this.postProgram,
+      framebuffer: null,
+      uniforms: {
+        u_time: { type: "1f", value: t },
+        u_debugMode: { type: "1i", value: this.debugMode },
+        u_resolution: { type: "2f", value: resolution },
+      },
+      textures: [
+        {
+          name: "u_scene",
+          texture: this.sceneFramebuffer.texture,
+        },
+      ],
+    });
   }
 }
