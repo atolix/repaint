@@ -2,7 +2,7 @@ import { createProgram } from "./shader";
 import vertexSource from "./shaders/fullscreen.vert?raw";
 import { Framebuffer } from "./framebuffer";
 import { resolveIncludes } from "./shader-loader";
-import copySource from "./shaders/copy.frag?raw";
+import outputSource from "./shaders/output.frag?raw";
 import { sendLogPipeline } from "./logger";
 
 type UniformValue =
@@ -45,7 +45,7 @@ export class Renderer {
 
   private sceneFramebuffer: Framebuffer;
   private postProgram: WebGLProgram;
-  private copyProgram: WebGLProgram;
+  private outputProgram: WebGLProgram;
 
   private postPasses: PostPass[];
   private postFramebuffers: [Framebuffer, Framebuffer];
@@ -73,8 +73,8 @@ export class Renderer {
 
     this.sceneFramebuffer = new Framebuffer(gl);
     this.postProgram = createProgram(gl, vertexSource, postFragmentSource);
-    this.copyProgram = createProgram(gl, vertexSource, resolveIncludes(
-      copySource, "./shaders/copy.frag"
+    this.outputProgram = createProgram(gl, vertexSource, resolveIncludes(
+      outputSource, "./shaders/output.frag"
     ))
 
     this.postPasses = [
@@ -205,7 +205,7 @@ export class Renderer {
         output: pass.enabled ? "nextPost/screen" : "skipped",
       })),
       {
-        name: "copy",
+        name: "output",
         enabled: true,
         input: "finalTexture",
         output: "screen",
@@ -252,7 +252,7 @@ export class Renderer {
 
     if (enabledPostPasses.length === 0) {
       this.drawFullscreenPass({
-        program: this.copyProgram,
+        program: this.outputProgram,
         framebuffer: null,
         uniforms: {
           u_resolution: { type: "2f", value: resolution },
