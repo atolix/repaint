@@ -11,7 +11,7 @@ uniform sampler2D u_scene;
 out vec4 outColor;
 
 void main() {
-  vec2 uv = getUV();
+  vec2 uv = gl_FragCoord.xy / u_resolution;
   vec3 color = texture(u_scene, uv).rgb;
   color = 1.0 - color;
   outColor = vec4(color, 1.0);
