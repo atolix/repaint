@@ -3,15 +3,16 @@ import vertexSource from "./shaders/fullscreen.vert?raw";
 import { Framebuffer } from "./framebuffer";
 import { drawPass } from "./pass/draw";
 import { PostProcessPipeline, type PostProcessPassConfig } from "./pipeline/post-process";
+import { DebugState } from "./debug/state";
 
 export class Renderer {
   private gl: WebGL2RenderingContext;
   private program: WebGLProgram;
   private canvas: HTMLCanvasElement;
-  private debugMode = 0;
 
   private sceneFramebuffer: Framebuffer;
   private postProcessPipeline: PostProcessPipeline;
+  private debugState: DebugState;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -27,15 +28,9 @@ export class Renderer {
 
     this.program = createProgram(gl, vertexSource, sceneSource);
 
-    window.addEventListener("keydown", (event) => {
-      if (event.key === "d") {
-        this.debugMode = (this.debugMode + 1) % 4;
-        console.log("debug mode:", this.debugMode);
-      }
-    })
-
     this.sceneFramebuffer = new Framebuffer(gl);
     this.postProcessPipeline = new PostProcessPipeline(gl, postPasses);
+    this.debugState = new DebugState();
   }
 
   private createProgram(fragmentSource: string) {
@@ -92,7 +87,7 @@ export class Renderer {
       framebuffer: this.sceneFramebuffer,
       uniforms: {
         u_time: { type: "1f", value: t },
-        u_debugMode: { type: "1i", value: this.debugMode },
+        u_debugMode: { type: "1i", value: this.debugState.mode },
         u_resolution: { type: "2f", value: resolution },
       },
     });
@@ -101,7 +96,7 @@ export class Renderer {
       inputTexture: this.sceneFramebuffer.texture,
       resolution,
       time: t,
-      debugMode: this.debugMode,
+      debugMode: this.debugState.mode,
     });
   }
 }
