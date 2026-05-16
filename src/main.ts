@@ -6,7 +6,7 @@ import { reloadShader } from "./hmr";
 
 const canvas = document.querySelector("#canvas") as HTMLCanvasElement;
 const sceneSource = resolveIncludes(mainSource, "./shaders/main.frag");
-const invertFragmentSource = resolveIncludes(invertSource, "./shaders/effects/invert.frag.frag");
+const invertFragmentSource = resolveIncludes(invertSource, "./shaders/effects/invert.frag");
 
 const postPasses = [
   {
