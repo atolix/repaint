@@ -47,42 +47,29 @@ export class PostProcessPipeline {
   }
 
   updatePasses(passConfigs: PostProcessPassConfig[]): string | null {
+    const nextPasses: ShaderPass[] = [];
+
     try {
-      const nextPassNames = new Set(passConfigs.map((passConfig) => passConfig.name));
-
-      for (let i = this.passes.length - 1; i >= 0; i--) {
-        const pass = this.passes[i];
-
-        if (nextPassNames.has(pass.name)) continue;
-
-        this.gl.deleteProgram(pass.program);
-        this.passes.splice(i, 1);
-      }
-
       for (const passConfig of passConfigs) {
-        const pass = this.passes.find((pass) => pass.name === passConfig.name);
-        const nextProgram = createProgram(
-          this.gl,
-          vertexSource,
-          passConfig.source
-        );
-
-        if (pass) {
-          this.gl.deleteProgram(pass.program);
-          pass.enabled = passConfig.enabled;
-          pass.program = nextProgram;
-        } else {
-          this.passes.push({
-            name: passConfig.name,
-            enabled: passConfig.enabled,
-            program: nextProgram,
-          });
-        }
+        nextPasses.push({
+          name: passConfig.name,
+          enabled: passConfig.enabled,
+          program: createProgram(this.gl, vertexSource, passConfig.source),
+        });
       }
 
+      for (const pass of this.passes) {
+        this.gl.deleteProgram(pass.program);
+      }
+
+      this.passes.splice(0, this.passes.length, ...nextPasses);
       this.log();
       return null;
     } catch (error) {
+      for (const pass of nextPasses) {
+        this.gl.deleteProgram(pass.program);
+      }
+
       return error instanceof Error ? error.message : String(error);
     }
   }
