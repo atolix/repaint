@@ -48,6 +48,17 @@ export class PostProcessPipeline {
 
   updatePasses(passConfigs: PostProcessPassConfig[]): string | null {
     try {
+      const nextPassNames = new Set(passConfigs.map((passConfig) => passConfig.name));
+
+      for (let i = this.passes.length - 1; i >= 0; i--) {
+        const pass = this.passes[i];
+
+        if (nextPassNames.has(pass.name)) continue;
+
+        this.gl.deleteProgram(pass.program);
+        this.passes.splice(i, 1);
+      }
+
       for (const passConfig of passConfigs) {
         const pass = this.passes.find((pass) => pass.name === passConfig.name);
         const nextProgram = createProgram(

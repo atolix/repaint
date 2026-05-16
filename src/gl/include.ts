@@ -11,12 +11,20 @@ const shaderModules = Object.fromEntries(
   ])
 );
 
-export function resolveIncludes(source: string, from = "./shaders/main.frag"): string {
+export function resolveIncludes(
+  source: string,
+  from = "./shaders/main.frag",
+  stack = [from]
+): string {
   return source.replace(
     /#include\s+"(.+?)"/g,
     (_, includePath: string) => {
       const baseDir = from.split("/").slice(0, -1).join("/");
       const resolvedPath = normalizePath(`${baseDir}/${includePath}`);
+
+      if (stack.includes(resolvedPath)) {
+        throw new Error(`shader include cycle: ${[...stack, resolvedPath].join(" -> ")}`);
+      }
 
       const included = shaderModules[resolvedPath];
 
@@ -24,7 +32,7 @@ export function resolveIncludes(source: string, from = "./shaders/main.frag"): s
         throw new Error(`shader include not found: ${includePath} from ${from}`);
       }
 
-      return resolveIncludes(included, resolvedPath);
+      return resolveIncludes(included, resolvedPath, [...stack, resolvedPath]);
     }
   );
 }
