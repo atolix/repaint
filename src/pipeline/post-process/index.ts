@@ -79,15 +79,6 @@ export class PostProcessPipeline {
     }
   }
 
-  setPassEnabled(name: string, enabled: boolean) {
-    const pass = this.passes.find((pass) => pass.name === name);
-
-    if (!pass) return;
-
-    pass.enabled = enabled;
-    this.log();
-  }
-
   render(options: PostProcessRenderOptions) {
     const {
       inputTexture,

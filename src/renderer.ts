@@ -50,11 +50,6 @@ export class Renderer {
     return [width, height];
   }
 
-
-  setPostPassEnabled(name: string, enabled: boolean) {
-    this.postProcessPipeline.setPassEnabled(name, enabled);
-  }
-
   render(time: number) {
     const resolution = this.resize();
     const t = time * 0.001;
