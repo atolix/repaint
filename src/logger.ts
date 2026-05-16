@@ -8,5 +8,11 @@ type PipelineLogPass = {
 export function sendLogPipeline(passes: PipelineLogPass[]) {
   if (!import.meta.hot) return;
 
-  import.meta.hot.send("pipeline", { passes })
+  window.setTimeout(() => {
+    try {
+      import.meta.hot?.send("pipeline", { passes })
+    } catch {
+      console.log('websocket not ready.')
+    }
+  }, 100);
 }
