@@ -2,7 +2,6 @@ import { Framebuffer } from "../../gl/framebuffer";
 import { createProgram } from "../../gl/program";
 import { resolveIncludes } from "../../gl/include";
 import { drawPass } from "../../pass/draw";
-import type { ShaderPass } from "../../pass/types";
 import vertexSource from "../../shaders/fullscreen.vert?raw";
 import outputSource from "../../shaders/output.frag?raw";
 import { logPipeline } from "../log";
@@ -20,11 +19,17 @@ type PostProcessRenderOptions = {
   debugMode: number;
 };
 
+type PostProcessPass = {
+  name: string;
+  enabled: boolean;
+  program: WebGLProgram;
+};
+
 export class PostProcessPipeline {
   private readonly gl: WebGL2RenderingContext;
   private readonly outputProgram: WebGLProgram;
   private readonly framebuffers: [Framebuffer, Framebuffer];
-  private readonly passes: ShaderPass[];
+  private readonly passes: PostProcessPass[];
 
   constructor(gl: WebGL2RenderingContext, passConfigs: PostProcessPassConfig[]) {
     this.gl = gl;
@@ -47,7 +52,7 @@ export class PostProcessPipeline {
   }
 
   updatePasses(passConfigs: PostProcessPassConfig[]): string | null {
-    const nextPasses: ShaderPass[] = [];
+    const nextPasses: PostProcessPass[] = [];
 
     try {
       for (const passConfig of passConfigs) {

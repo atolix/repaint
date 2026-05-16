@@ -1,7 +1,8 @@
-import type { ShaderPass } from "../pass/types";
-
 type PipelineLogOptions = {
-  postPasses: ShaderPass[];
+  postPasses: {
+    name: string;
+    enabled: boolean;
+  }[];
 };
 
 type PipelineLogPass = {
