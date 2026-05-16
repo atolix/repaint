@@ -2,7 +2,7 @@ import mainSource from "./shaders/main.frag?raw";
 import { Renderer } from "./renderer";
 import { resolveIncludes } from "./gl/include";
 import { reloadShader } from "./hmr";
-import { createPostProcessPasses } from "./pipeline/post-process-config";
+import { createPostProcessPasses } from "./pipeline/post-process/config";
 
 const canvas = document.querySelector("#canvas") as HTMLCanvasElement;
 const sceneSource = resolveIncludes(mainSource, "./shaders/main.frag");
@@ -19,7 +19,7 @@ if (import.meta.hot) {
     );
   });
 
-  import.meta.hot.accept("./pipeline/post-process-config", (module) => {
+  import.meta.hot.accept("./pipeline/post-process/config", (module) => {
     if (!module) return;
 
     const error = renderer.updatePostProcessPasses(module.createPostProcessPasses());

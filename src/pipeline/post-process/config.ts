@@ -1,6 +1,6 @@
-import invertSource from "../shaders/effects/invert.frag?raw";
-import { resolveIncludes } from "../gl/include";
-import type { PostProcessPassConfig } from "./post-process";
+import invertSource from "../../shaders/effects/invert.frag?raw";
+import { resolveIncludes } from "../../gl/include";
+import type { PostProcessPassConfig } from ".";
 
 export function createPostProcessPasses(): PostProcessPassConfig[] {
   return [

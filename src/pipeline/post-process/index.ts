@@ -1,11 +1,11 @@
-import { Framebuffer } from "../framebuffer";
-import { createProgram } from "../gl/program";
-import { resolveIncludes } from "../gl/include";
-import { drawPass } from "../pass/draw";
-import type { ShaderPass } from "../pass/types";
-import vertexSource from "../shaders/fullscreen.vert?raw";
-import outputSource from "../shaders/output.frag?raw";
-import { logPipeline } from "./log";
+import { Framebuffer } from "../../framebuffer";
+import { createProgram } from "../../gl/program";
+import { resolveIncludes } from "../../gl/include";
+import { drawPass } from "../../pass/draw";
+import type { ShaderPass } from "../../pass/types";
+import vertexSource from "../../shaders/fullscreen.vert?raw";
+import outputSource from "../../shaders/output.frag?raw";
+import { logPipeline } from "../log";
 
 export type PostProcessPassConfig = {
   name: string;
