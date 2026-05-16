@@ -40,7 +40,7 @@ function showError(message: string) {
 
 function clearError() {
   errorElement.textContent = ""
-  errorElement.style.display = "node"
+  errorElement.style.display = "none"
 }
 
 requestAnimationFrame(frame);
