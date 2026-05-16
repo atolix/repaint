@@ -2,6 +2,7 @@ import { createProgram } from "./shader";
 import vertexSource from "./shaders/fullscreen.vert?raw";
 import { Framebuffer } from "./framebuffer";
 import { resolveIncludes } from "./shader-loader";
+import copySource from "./shaders/copy.frag?raw";
 
 type UniformValue =
   | {
@@ -29,6 +30,12 @@ type FullscreenPassOptions = {
   textures?: TextureUniform[];
 };
 
+type PostPass = {
+  name: string;
+  enabled: boolean;
+  program: WebGLProgram;
+}
+
 export class Renderer {
   private gl: WebGL2RenderingContext;
   private program: WebGLProgram;
@@ -37,6 +44,10 @@ export class Renderer {
 
   private sceneFramebuffer: Framebuffer;
   private postProgram: WebGLProgram;
+  private copyProgram: WebGLProgram;
+
+  private postPasses: PostPass[];
+  private postFramebuffers: [Framebuffer, Framebuffer];
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -61,6 +72,22 @@ export class Renderer {
 
     this.sceneFramebuffer = new Framebuffer(gl);
     this.postProgram = createProgram(gl, vertexSource, postFragmentSource);
+    this.copyProgram = createProgram(gl, vertexSource, resolveIncludes(
+      copySource, "./shaders/copy.frag"
+    ))
+
+    this.postPasses = [
+      {
+        name: "post",
+        enabled: true,
+        program: createProgram(gl, vertexSource, postFragmentSource)
+      }
+    ]
+
+    this.postFramebuffers = [
+      new Framebuffer(gl),
+      new Framebuffer(gl)
+    ]
   }
 
   private createProgram(fragmentSource: string) {
@@ -184,20 +211,51 @@ export class Renderer {
       },
     });
 
-    this.drawFullscreenPass({
-      program: this.postProgram,
-      framebuffer: null,
-      uniforms: {
-        u_time: { type: "1f", value: t },
-        u_debugMode: { type: "1i", value: this.debugMode },
-        u_resolution: { type: "2f", value: resolution },
-      },
-      textures: [
-        {
-          name: "u_scene",
-          texture: this.sceneFramebuffer.texture,
+    let inputTexture = this.sceneFramebuffer.texture;
+
+    const enabledPostPasses = this.postPasses.filter((pass) => pass.enabled);
+
+    if (enabledPostPasses.length === 0) {
+      this.drawFullscreenPass({
+        program: this.copyProgram,
+        framebuffer: null,
+        uniforms: {
+          u_resolution: { type: "2f", value: resolution },
         },
-      ],
-    });
+        textures: [
+          {
+            name: "u_scene",
+            texture: inputTexture,
+          },
+        ],
+      });
+    } else {
+      for (let i = 0; i < enabledPostPasses.length; i++) {
+        const pass = enabledPostPasses[i];
+        const isLast = i === enabledPostPasses.length - 1;
+
+        const outputFramebuffer = isLast ? null : this.postFramebuffers[i % 2];
+
+        if (outputFramebuffer) outputFramebuffer.resize(this.canvas.width, this.canvas.height);
+
+        this.drawFullscreenPass({
+          program: pass.program,
+          framebuffer: outputFramebuffer,
+          uniforms: {
+            u_time: { type: "1f", value: t },
+            u_debugMode: { type: "1i", value: this.debugMode },
+            u_resolution: { type: "2f", value: resolution },
+          },
+          textures: [
+            {
+              name: "u_scene",
+              texture: inputTexture,
+            },
+          ],
+        })
+
+        if (outputFramebuffer) inputTexture = outputFramebuffer.texture;
+      }
+    }
   }
 }
