@@ -1,30 +1,36 @@
 import mainSource from "./shaders/main.frag?raw";
+import postSource from "./shaders/post.frag?raw";
 import { Renderer } from "./renderer";
 import { resolveIncludes } from "./shader-loader";
 
-const fragmentSource = resolveIncludes(mainSource, "./shaders/main.frag");
 const canvas = document.querySelector("#canvas") as HTMLCanvasElement;
-const renderer = new Renderer(canvas, fragmentSource);
+const fragmentSource = resolveIncludes(mainSource, "./shaders/main.frag");
+const postFragmentSource = resolveIncludes(postSource, "./shaders/post.frag");
+const renderer = new Renderer(canvas, fragmentSource, postFragmentSource);
 const errorElement = document.querySelector("#error") as HTMLCanvasElement;
 
 if (import.meta.hot) {
-  import.meta.hot.accept(
-    "./shaders/main.frag?raw",
-    (module) => {
-      if (!module) return;
+  import.meta.hot.accept("./shaders/main.frag?raw", (module) => {
+    if (!module) return;
 
-      const error = renderer.updateFragmentShader(
-        resolveIncludes(module.default, "./shaders/main.frag")
-      )
+    const error = renderer.updateFragmentShader(
+      resolveIncludes(module.default, "./shaders/main.frag")
+    )
 
-      if (error) {
-        console.log("error")
-        showError(error)
-      } else {
-        clearError()
-      }
-    }
-  )
+    if (error) showError(error);
+    else clearError();
+  });
+
+  import.meta.hot.accept("./shaders/post.frag?raw", (module) => {
+    if (!module) return;
+
+    const error = renderer.updatePostShader(
+      resolveIncludes(module.default, "./shaders/post.frag")
+    );
+
+    if (error) showError(error);
+    else clearError();
+  });
 }
 
 function frame(time: number) {

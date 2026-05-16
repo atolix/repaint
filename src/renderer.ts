@@ -1,6 +1,5 @@
 import { createProgram } from "./shader";
 import vertexSource from "./shaders/fullscreen.vert?raw";
-import postFragmentSource from "./shaders/post.frag?raw";
 import { Framebuffer } from "./framebuffer";
 import { resolveIncludes } from "./shader-loader";
 
@@ -39,7 +38,11 @@ export class Renderer {
   private sceneFramebuffer: Framebuffer;
   private postProgram: WebGLProgram;
 
-  constructor(canvas: HTMLCanvasElement, fragmentSource: string) {
+  constructor(
+    canvas: HTMLCanvasElement,
+    fragmentSource: string,
+    postFragmentSource: string
+  ) {
     const gl = canvas.getContext("webgl2");
 
     if (!gl) throw new Error("webgl2 not supported");
@@ -57,10 +60,7 @@ export class Renderer {
     })
 
     this.sceneFramebuffer = new Framebuffer(gl);
-    this.postProgram = createProgram(gl, vertexSource, resolveIncludes(
-      postFragmentSource,
-      "./shaders/post.frag"
-    ));
+    this.postProgram = createProgram(gl, vertexSource, postFragmentSource);
   }
 
   private createProgram(fragmentSource: string) {
@@ -131,6 +131,23 @@ export class Renderer {
       return null
     } catch (error) {
       return error instanceof Error ? error.message : String(error)
+    }
+  }
+
+  updatePostShader(fragmentSource: string): string | null {
+    try {
+      const nextProgram = createProgram(
+        this.gl,
+        vertexSource,
+        resolveIncludes(fragmentSource, "./shaders/post.frag")
+      );
+
+      this.gl.deleteProgram(this.postProgram);
+      this.postProgram = nextProgram;
+
+      return null;
+    } catch (error) {
+      return error instanceof Error ? error.message : String(error);
     }
   }
 
