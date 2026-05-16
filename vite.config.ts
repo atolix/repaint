@@ -11,7 +11,7 @@ function logger(): Plugin {
         console.log("current:")
 
         for (const [index, pass] of payload.passes.entries()) {
-          const status = pass.enabled ? "on " : "off";
+          const status = pass.enabled ? "on" : "off";
           console.log(
             `${index + 1}. [${status}] ${pass.name}  ${pass.input} -> ${pass.output}`
           );
@@ -21,11 +21,11 @@ function logger(): Plugin {
       })
 
       server.ws.on("shader:compiled", (payload) => {
-        console.log(`[shader] compiled: ${payload.path}`);
+        console.log(`[shader] \x1b[36m[compiled]\x1b[0m ${payload.path}`);
       });
 
       server.ws.on("shader:error", (payload) => {
-        console.log(`[shader] error: ${payload.path}`);
+        console.log(`[shader] \x1b[31m[error]\x1b[0m ${payload.path}`);
         console.log(payload.error);
       });
     }
