@@ -3,6 +3,7 @@ import vertexSource from "./shaders/fullscreen.vert?raw";
 import { Framebuffer } from "./framebuffer";
 import { resolveIncludes } from "./shader-loader";
 import copySource from "./shaders/copy.frag?raw";
+import { sendLogPipeline } from "./logger";
 
 type UniformValue =
   | {
@@ -88,6 +89,8 @@ export class Renderer {
       new Framebuffer(gl),
       new Framebuffer(gl)
     ]
+
+    this.logPipeline();
   }
 
   private createProgram(fragmentSource: string) {
@@ -185,6 +188,38 @@ export class Renderer {
     this.canvas.height = this.canvas.clientHeight * dpr;
 
     this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+  }
+
+  logPipeline() {
+    sendLogPipeline([
+      {
+        name: "scene",
+        enabled: true,
+        input: "main.frag",
+        output: "sceneFramebuffer",
+      },
+      ...this.postPasses.map((pass, index) => ({
+        name: pass.name,
+        enabled: pass.enabled,
+        input: index === 0 ? "sceneFramebuffer.texture" : "previousPost.texture",
+        output: pass.enabled ? "nextPost/screen" : "skipped",
+      })),
+      {
+        name: "copy",
+        enabled: true,
+        input: "finalTexture",
+        output: "screen",
+      },
+    ]);
+  }
+
+  setPostPassEnabled(name: string, enabled: boolean) {
+    const pass = this.postPasses.find((pass) => pass.name === name);
+
+    if (!pass) return;
+
+    pass.enabled = enabled;
+    this.logPipeline();
   }
 
   render(time: number) {
