@@ -4,9 +4,9 @@ precision highp float;
 
 uniform sampler2D u_scene;
 
-#include "./lib/uniforms.glsl"
-#include "./lib/util.glsl"
-#include "./lib/debug.glsl"
+#include "../lib/uniforms.glsl"
+#include "../lib/util.glsl"
+#include "../lib/debug.glsl"
 
 out vec4 outColor;
 

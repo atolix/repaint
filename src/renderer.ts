@@ -47,7 +47,7 @@ export class Renderer {
 
     this.postPasses = [
       {
-        name: "post",
+        name: "invert",
         enabled: true,
         program: createProgram(gl, vertexSource, postFragmentSource)
       }

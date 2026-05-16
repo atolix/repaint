@@ -1,13 +1,13 @@
 import mainSource from "./shaders/main.frag?raw";
-import postSource from "./shaders/post.frag?raw";
+import invertSource from "./shaders/effects/invert.frag?raw";
 import { Renderer } from "./renderer";
 import { resolveIncludes } from "./gl/include";
 import { reloadShader } from "./hmr";
 
 const canvas = document.querySelector("#canvas") as HTMLCanvasElement;
 const fragmentSource = resolveIncludes(mainSource, "./shaders/main.frag");
-const postFragmentSource = resolveIncludes(postSource, "./shaders/post.frag");
-const renderer = new Renderer(canvas, fragmentSource, postFragmentSource);
+const invertFragmentSource = resolveIncludes(invertSource, "./shaders/effects/invert.frag.frag");
+const renderer = new Renderer(canvas, fragmentSource, invertFragmentSource);
 const errorElement = document.querySelector("#error") as HTMLDivElement;
 
 if (import.meta.hot) {
@@ -18,18 +18,6 @@ if (import.meta.hot) {
       "./shaders/main.frag",
       module.default,
       (source) => renderer.updateFragmentShader(source),
-      showError,
-      clearError
-    );
-  });
-
-  import.meta.hot.accept("./shaders/post.frag?raw", (module) => {
-    if (!module) return;
-
-    reloadShader(
-      "./shaders/post.frag",
-      module.default,
-      (source) => renderer.updatePostShader(source),
       showError,
       clearError
     );
