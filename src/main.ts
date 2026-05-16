@@ -8,7 +8,7 @@ const canvas = document.querySelector("#canvas") as HTMLCanvasElement;
 const fragmentSource = resolveIncludes(mainSource, "./shaders/main.frag");
 const postFragmentSource = resolveIncludes(postSource, "./shaders/post.frag");
 const renderer = new Renderer(canvas, fragmentSource, postFragmentSource);
-const errorElement = document.querySelector("#error") as HTMLCanvasElement;
+const errorElement = document.querySelector("#error") as HTMLDivElement;
 
 if (import.meta.hot) {
   import.meta.hot.accept("./shaders/main.frag?raw", (module) => {
