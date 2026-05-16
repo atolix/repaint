@@ -1,7 +1,7 @@
-import type { RenderPass } from "../pass/render";
+import type { ShaderPass } from "../pass/types";
 
 type PipelineLogOptions = {
-  postPasses: RenderPass[];
+  postPasses: ShaderPass[];
 };
 
 type PipelineLogPass = {

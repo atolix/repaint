@@ -1,11 +1,8 @@
 import { createProgram } from "./gl/program";
 import vertexSource from "./shaders/fullscreen.vert?raw";
 import { Framebuffer } from "./framebuffer";
-import { resolveIncludes } from "./gl/include";
-import outputSource from "./shaders/output.frag?raw";
 import { drawPass } from "./pass/draw";
-import type { RenderPass } from "./pass/render";
-import { logPipeline } from "./pipeline/log";
+import { PostProcessPipeline, type PostProcessPassConfig } from "./pipeline/post-process";
 
 export class Renderer {
   private gl: WebGL2RenderingContext;
@@ -14,19 +11,12 @@ export class Renderer {
   private debugMode = 0;
 
   private sceneFramebuffer: Framebuffer;
-  private outputProgram: WebGLProgram;
-
-  private postPasses: RenderPass[];
-  private postFramebuffers: [Framebuffer, Framebuffer];
+  private postProcessPipeline: PostProcessPipeline;
 
   constructor(
     canvas: HTMLCanvasElement,
     sceneSource: string,
-    postPasses: {
-      name: string;
-      source: string;
-      enabled: boolean;
-    }[]
+    postPasses: PostProcessPassConfig[]
   ) {
     const gl = canvas.getContext("webgl2");
 
@@ -45,22 +35,7 @@ export class Renderer {
     })
 
     this.sceneFramebuffer = new Framebuffer(gl);
-    this.outputProgram = createProgram(gl, vertexSource, resolveIncludes(
-      outputSource, "./shaders/output.frag"
-    ))
-
-    this.postPasses = postPasses.map((pass) => ({
-      name: pass.name,
-      enabled: pass.enabled,
-      program: createProgram(gl, vertexSource, pass.source),
-    }));
-
-    this.postFramebuffers = [
-      new Framebuffer(gl),
-      new Framebuffer(gl)
-    ]
-
-    logPipeline({ postPasses: this.postPasses });
+    this.postProcessPipeline = new PostProcessPipeline(gl, postPasses);
   }
 
   private createProgram(fragmentSource: string) {
@@ -81,25 +56,7 @@ export class Renderer {
   }
 
   updatePostShader(fragmentSource: string): string | null {
-    try {
-      const pass = this.postPasses.find((pass) => pass.name === "post");
-
-      if (!pass) throw new Error("post pass not found");
-
-
-      const nextProgram = createProgram(
-        this.gl,
-        vertexSource,
-        resolveIncludes(fragmentSource, "./shaders/post.frag")
-      );
-
-      this.gl.deleteProgram(pass.program);
-      pass.program = nextProgram;
-
-      return null;
-    } catch (error) {
-      return error instanceof Error ? error.message : String(error);
-    }
+    return this.postProcessPipeline.updatePostShader(fragmentSource);
   }
 
   resize() {
@@ -113,12 +70,7 @@ export class Renderer {
 
 
   setPostPassEnabled(name: string, enabled: boolean) {
-    const pass = this.postPasses.find((pass) => pass.name === name);
-
-    if (!pass) return;
-
-    pass.enabled = enabled;
-    logPipeline({ postPasses: this.postPasses });
+    this.postProcessPipeline.setPassEnabled(name, enabled);
   }
 
   render(time: number) {
@@ -145,51 +97,11 @@ export class Renderer {
       },
     });
 
-    let inputTexture = this.sceneFramebuffer.texture;
-
-    const enabledPostPasses = this.postPasses.filter((pass) => pass.enabled);
-
-    if (enabledPostPasses.length === 0) {
-      drawPass(this.gl, {
-        program: this.outputProgram,
-        framebuffer: null,
-        uniforms: {
-          u_resolution: { type: "2f", value: resolution },
-        },
-        textures: [
-          {
-            name: "u_scene",
-            texture: inputTexture,
-          },
-        ],
-      });
-    } else {
-      for (let i = 0; i < enabledPostPasses.length; i++) {
-        const pass = enabledPostPasses[i];
-        const isLast = i === enabledPostPasses.length - 1;
-
-        const outputFramebuffer = isLast ? null : this.postFramebuffers[i % 2];
-
-        if (outputFramebuffer) outputFramebuffer.resize(this.canvas.width, this.canvas.height);
-
-        drawPass(this.gl, {
-          program: pass.program,
-          framebuffer: outputFramebuffer,
-          uniforms: {
-            u_time: { type: "1f", value: t },
-            u_debugMode: { type: "1i", value: this.debugMode },
-            u_resolution: { type: "2f", value: resolution },
-          },
-          textures: [
-            {
-              name: "u_scene",
-              texture: inputTexture,
-            },
-          ],
-        })
-
-        if (outputFramebuffer) inputTexture = outputFramebuffer.texture;
-      }
-    }
+    this.postProcessPipeline.render({
+      inputTexture: this.sceneFramebuffer.texture,
+      resolution,
+      time: t,
+      debugMode: this.debugMode,
+    });
   }
 }
