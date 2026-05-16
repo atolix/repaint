@@ -50,10 +50,6 @@ export class Renderer {
     }
   }
 
-  updatePostShader(name: string, fragmentSource: string): string | null {
-    return this.postProcessPipeline.updatePostShader(name, fragmentSource);
-  }
-
   updatePostProcessPasses(postPasses: PostProcessPassConfig[]): string | null {
     return this.postProcessPipeline.updatePasses(postPasses);
   }

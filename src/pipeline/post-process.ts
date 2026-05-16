@@ -46,27 +46,6 @@ export class PostProcessPipeline {
     this.log();
   }
 
-  updatePostShader(name: string, fragmentSource: string): string | null {
-    try {
-      const pass = this.passes.find((pass) => pass.name === name);
-
-      if (!pass) throw new Error(`post pass not found: ${name}`);
-
-      const nextProgram = createProgram(
-        this.gl,
-        vertexSource,
-        fragmentSource
-      );
-
-      this.gl.deleteProgram(pass.program);
-      pass.program = nextProgram;
-
-      return null;
-    } catch (error) {
-      return error instanceof Error ? error.message : String(error);
-    }
-  }
-
   updatePasses(passConfigs: PostProcessPassConfig[]): string | null {
     try {
       for (const passConfig of passConfigs) {
