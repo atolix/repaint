@@ -28,6 +28,16 @@ if (import.meta.hot) {
       (source) => renderer.updateFragmentShader(source),
     );
   });
+
+  import.meta.hot.accept("./shaders/effects/invert.frag?raw", (module) => {
+    if (!module) return;
+
+    reloadShader(
+      "./shaders/effects/invert.frag",
+      module.default,
+      (source) => renderer.updatePostShader("invert", source),
+    );
+  });
 }
 
 function frame(time: number) {

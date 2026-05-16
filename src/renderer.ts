@@ -55,8 +55,8 @@ export class Renderer {
     }
   }
 
-  updatePostShader(fragmentSource: string): string | null {
-    return this.postProcessPipeline.updatePostShader(fragmentSource);
+  updatePostShader(name: string, fragmentSource: string): string | null {
+    return this.postProcessPipeline.updatePostShader(name, fragmentSource);
   }
 
   resize() {

@@ -46,16 +46,16 @@ export class PostProcessPipeline {
     this.log();
   }
 
-  updatePostShader(fragmentSource: string): string | null {
+  updatePostShader(name: string, fragmentSource: string): string | null {
     try {
-      const pass = this.passes.find((pass) => pass.name === "post");
+      const pass = this.passes.find((pass) => pass.name === name);
 
-      if (!pass) throw new Error("post pass not found");
+      if (!pass) throw new Error(`post pass not found: ${name}`);
 
       const nextProgram = createProgram(
         this.gl,
         vertexSource,
-        resolveIncludes(fragmentSource, "./shaders/post.frag")
+        fragmentSource
       );
 
       this.gl.deleteProgram(pass.program);
