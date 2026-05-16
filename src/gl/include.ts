@@ -1,8 +1,15 @@
-const shaderModules = import.meta.glob("./shaders/**/*.glsl", {
+const rawShaderModules = import.meta.glob("../shaders/**/*.glsl", {
   query: "?raw",
   import: "default",
   eager: true,
 }) as Record<string, string>;
+
+const shaderModules = Object.fromEntries(
+  Object.entries(rawShaderModules).map(([path, source]) => [
+    path.replace("../shaders/", "./shaders/"),
+    source,
+  ])
+);
 
 export function resolveIncludes(source: string, from = "./shaders/main.frag"): string {
   return source.replace(

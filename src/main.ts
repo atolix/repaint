@@ -1,7 +1,7 @@
 import mainSource from "./shaders/main.frag?raw";
 import postSource from "./shaders/post.frag?raw";
 import { Renderer } from "./renderer";
-import { resolveIncludes } from "./shader-loader";
+import { resolveIncludes } from "./gl/include";
 import { reloadShader } from "./hmr";
 
 const canvas = document.querySelector("#canvas") as HTMLCanvasElement;

@@ -1,7 +1,7 @@
-import { createProgram } from "./shader";
+import { createProgram } from "./gl/program";
 import vertexSource from "./shaders/fullscreen.vert?raw";
 import { Framebuffer } from "./framebuffer";
-import { resolveIncludes } from "./shader-loader";
+import { resolveIncludes } from "./gl/include";
 import outputSource from "./shaders/output.frag?raw";
 import { drawPass } from "./pass/draw";
 import type { RenderPass } from "./pass/render";

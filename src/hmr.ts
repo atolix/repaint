@@ -1,4 +1,4 @@
-import { resolveIncludes } from "./shader-loader";
+import { resolveIncludes } from "./gl/include";
 
 export function reloadShader(
   path: string,
