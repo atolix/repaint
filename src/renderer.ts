@@ -4,32 +4,7 @@ import { Framebuffer } from "./framebuffer";
 import { resolveIncludes } from "./shader-loader";
 import outputSource from "./shaders/output.frag?raw";
 import { sendLogPipeline } from "./logger";
-
-type UniformValue =
-  | {
-    type: "1f";
-    value: number;
-  }
-  | {
-    type: "1i";
-    value: number;
-  }
-  | {
-    type: "2f";
-    value: [number, number];
-  };
-
-type TextureUniform = {
-  name: string;
-  texture: WebGLTexture;
-};
-
-type FullscreenPassOptions = {
-  program: WebGLProgram;
-  framebuffer?: Framebuffer | null;
-  uniforms?: Record<string, UniformValue>;
-  textures?: TextureUniform[];
-};
+import { drawPass } from "./pass";
 
 type PostPass = {
   name: string;
@@ -93,60 +68,6 @@ export class Renderer {
 
   private createProgram(fragmentSource: string) {
     return createProgram(this.gl, vertexSource, fragmentSource)
-  }
-
-  private drawFullscreenPass(options: FullscreenPassOptions) {
-    const {
-      program,
-      framebuffer = null,
-      uniforms = {},
-      textures = [],
-    } = options;
-
-    if (framebuffer) {
-      framebuffer.bind();
-    } else {
-      this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
-    }
-
-    this.gl.useProgram(program);
-
-    for (const [name, uniform] of Object.entries(uniforms)) {
-      const location = this.gl.getUniformLocation(program, name);
-
-      if (location === null) continue;
-
-      switch (uniform.type) {
-        case "1f":
-          this.gl.uniform1f(location, uniform.value);
-          break;
-        case "1i":
-          this.gl.uniform1i(location, uniform.value);
-          break;
-        case "2f":
-          this.gl.uniform2f(
-            location,
-            uniform.value[0],
-            uniform.value[1]
-          );
-          break;
-      }
-    }
-
-    textures.forEach((textureUniform, index) => {
-      const location = this.gl.getUniformLocation(
-        program,
-        textureUniform.name
-      );
-
-      if (location === null) return;
-
-      this.gl.activeTexture(this.gl.TEXTURE0 + index);
-      this.gl.bindTexture(this.gl.TEXTURE_2D, textureUniform.texture);
-      this.gl.uniform1i(location, index);
-    });
-
-    this.gl.drawArrays(this.gl.TRIANGLES, 0, 3);
   }
 
   updateFragmentShader(fragmentSource: string): string | null {
@@ -239,7 +160,7 @@ export class Renderer {
       this.canvas.height,
     ];
 
-    this.drawFullscreenPass({
+    drawPass(this.gl, {
       program: this.program,
       framebuffer: this.sceneFramebuffer,
       uniforms: {
@@ -254,7 +175,7 @@ export class Renderer {
     const enabledPostPasses = this.postPasses.filter((pass) => pass.enabled);
 
     if (enabledPostPasses.length === 0) {
-      this.drawFullscreenPass({
+      drawPass(this.gl, {
         program: this.outputProgram,
         framebuffer: null,
         uniforms: {
@@ -276,7 +197,7 @@ export class Renderer {
 
         if (outputFramebuffer) outputFramebuffer.resize(this.canvas.width, this.canvas.height);
 
-        this.drawFullscreenPass({
+        drawPass(this.gl, {
           program: pass.program,
           framebuffer: outputFramebuffer,
           uniforms: {
