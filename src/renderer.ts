@@ -44,7 +44,6 @@ export class Renderer {
   private debugMode = 0;
 
   private sceneFramebuffer: Framebuffer;
-  private postProgram: WebGLProgram;
   private outputProgram: WebGLProgram;
 
   private postPasses: PostPass[];
@@ -72,7 +71,6 @@ export class Renderer {
     })
 
     this.sceneFramebuffer = new Framebuffer(gl);
-    this.postProgram = createProgram(gl, vertexSource, postFragmentSource);
     this.outputProgram = createProgram(gl, vertexSource, resolveIncludes(
       outputSource, "./shaders/output.frag"
     ))
@@ -166,14 +164,19 @@ export class Renderer {
 
   updatePostShader(fragmentSource: string): string | null {
     try {
+      const pass = this.postPasses.find((pass) => pass.name === "post");
+
+      if (!pass) throw new Error("post pass not found");
+
+
       const nextProgram = createProgram(
         this.gl,
         vertexSource,
         resolveIncludes(fragmentSource, "./shaders/post.frag")
       );
 
-      this.gl.deleteProgram(this.postProgram);
-      this.postProgram = nextProgram;
+      this.gl.deleteProgram(pass.program);
+      pass.program = nextProgram;
 
       return null;
     } catch (error) {
