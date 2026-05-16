@@ -5,12 +5,7 @@ import { resolveIncludes } from "./shader-loader";
 import outputSource from "./shaders/output.frag?raw";
 import { sendLogPipeline } from "./logger";
 import { drawPass } from "./pass/draw";
-
-type PostPass = {
-  name: string;
-  enabled: boolean;
-  program: WebGLProgram;
-}
+import type { RenderPass } from "./pass/render";
 
 export class Renderer {
   private gl: WebGL2RenderingContext;
@@ -21,7 +16,7 @@ export class Renderer {
   private sceneFramebuffer: Framebuffer;
   private outputProgram: WebGLProgram;
 
-  private postPasses: PostPass[];
+  private postPasses: RenderPass[];
   private postFramebuffers: [Framebuffer, Framebuffer];
 
   constructor(
