@@ -18,8 +18,6 @@ const postPasses = [
 
 const renderer = new Renderer(canvas, sceneSource, postPasses);
 
-const errorElement = document.querySelector("#error") as HTMLDivElement;
-
 if (import.meta.hot) {
   import.meta.hot.accept("./shaders/main.frag?raw", (module) => {
     if (!module) return;
@@ -28,8 +26,6 @@ if (import.meta.hot) {
       "./shaders/main.frag",
       module.default,
       (source) => renderer.updateFragmentShader(source),
-      showError,
-      clearError
     );
   });
 }
@@ -38,16 +34,6 @@ function frame(time: number) {
   renderer.render(time);
 
   requestAnimationFrame(frame);
-}
-
-function showError(message: string) {
-  errorElement.textContent = message
-  errorElement.style.display = "block"
-}
-
-function clearError() {
-  errorElement.textContent = ""
-  errorElement.style.display = "none"
 }
 
 requestAnimationFrame(frame);

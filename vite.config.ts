@@ -19,6 +19,15 @@ function logger(): Plugin {
 
         console.log("");
       })
+
+      server.ws.on("shader:compiled", (payload) => {
+        console.log(`[shader] compiled: ${payload.path}`);
+      });
+
+      server.ws.on("shader:error", (payload) => {
+        console.log(`[shader] error: ${payload.path}`);
+        console.log(payload.error);
+      });
     }
   }
 }
