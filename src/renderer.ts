@@ -54,13 +54,19 @@ export class Renderer {
     return this.postProcessPipeline.updatePostShader(name, fragmentSource);
   }
 
-  resize() {
+  resize(): [number, number] {
     const dpr = window.devicePixelRatio || 1;
+    const width = Math.floor(this.canvas.clientWidth * dpr);
+    const height = Math.floor(this.canvas.clientHeight * dpr);
 
-    this.canvas.width = this.canvas.clientWidth * dpr;
-    this.canvas.height = this.canvas.clientHeight * dpr;
+    if (this.canvas.width !== width || this.canvas.height !== height) {
+      this.canvas.width = width;
+      this.canvas.height = height;
 
-    this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+      this.gl.viewport(0, 0, width, height);
+    }
+
+    return [width, height];
   }
 
 
@@ -69,18 +75,14 @@ export class Renderer {
   }
 
   render(time: number) {
-    this.resize();
+    const resolution = this.resize();
 
     this.sceneFramebuffer.resize(
-      this.canvas.width,
-      this.canvas.height
+      resolution[0],
+      resolution[1]
     );
 
     const t = time * 0.001;
-    const resolution: [number, number] = [
-      this.canvas.width,
-      this.canvas.height,
-    ];
 
     drawPass(this.gl, {
       program: this.program,
