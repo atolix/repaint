@@ -5,8 +5,8 @@ import type { PostProcessPassConfig } from ".";
 
 export function createPostProcessPasses(): PostProcessPassConfig[] {
   return [
-    createPostProcessPass("invert", invertSource, "./shaders/effects/invert.frag"),
-    createPostProcessPass("noise", noiseSource, "./shaders/effects/noise.frag"),
+    createPostProcessPass("invert", invertSource, "./shaders/effects/invert.frag", false),
+    createPostProcessPass("noise", noiseSource, "./shaders/effects/noise.frag", false),
   ];
 }
 
