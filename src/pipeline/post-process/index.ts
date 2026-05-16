@@ -1,4 +1,4 @@
-import { Framebuffer } from "../../framebuffer";
+import { Framebuffer } from "../../gl/framebuffer";
 import { createProgram } from "../../gl/program";
 import { resolveIncludes } from "../../gl/include";
 import { drawPass } from "../../pass/draw";

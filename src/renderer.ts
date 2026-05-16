@@ -1,6 +1,6 @@
 import { createProgram } from "./gl/program";
 import vertexSource from "./shaders/fullscreen.vert?raw";
-import { Framebuffer } from "./framebuffer";
+import { Framebuffer } from "./gl/framebuffer";
 import { drawPass } from "./pass/draw";
 import { PostProcessPipeline, type PostProcessPassConfig } from "./pipeline/post-process";
 import { DebugState } from "./debug/state";
