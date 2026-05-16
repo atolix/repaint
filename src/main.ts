@@ -2,6 +2,7 @@ import mainSource from "./shaders/main.frag?raw";
 import postSource from "./shaders/post.frag?raw";
 import { Renderer } from "./renderer";
 import { resolveIncludes } from "./shader-loader";
+import { reloadShader } from "./hmr";
 
 const canvas = document.querySelector("#canvas") as HTMLCanvasElement;
 const fragmentSource = resolveIncludes(mainSource, "./shaders/main.frag");
@@ -13,23 +14,25 @@ if (import.meta.hot) {
   import.meta.hot.accept("./shaders/main.frag?raw", (module) => {
     if (!module) return;
 
-    const error = renderer.updateFragmentShader(
-      resolveIncludes(module.default, "./shaders/main.frag")
-    )
-
-    if (error) showError(error);
-    else clearError();
+    reloadShader(
+      "./shaders/main.frag",
+      module.default,
+      (source) => renderer.updateFragmentShader(source),
+      showError,
+      clearError
+    );
   });
 
   import.meta.hot.accept("./shaders/post.frag?raw", (module) => {
     if (!module) return;
 
-    const error = renderer.updatePostShader(
-      resolveIncludes(module.default, "./shaders/post.frag")
+    reloadShader(
+      "./shaders/post.frag",
+      module.default,
+      (source) => renderer.updatePostShader(source),
+      showError,
+      clearError
     );
-
-    if (error) showError(error);
-    else clearError();
   });
 }
 
