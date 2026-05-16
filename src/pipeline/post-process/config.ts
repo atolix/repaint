@@ -4,10 +4,19 @@ import type { PostProcessPassConfig } from ".";
 
 export function createPostProcessPasses(): PostProcessPassConfig[] {
   return [
-    {
-      name: "invert",
-      source: resolveIncludes(invertSource, "./shaders/effects/invert.frag"),
-      enabled: true,
-    },
+    createPostProcessPass("invert", invertSource, "./shaders/effects/invert.frag"),
   ];
+}
+
+function createPostProcessPass(
+  name: string,
+  source: string,
+  path: string,
+  enabled = true
+): PostProcessPassConfig {
+  return {
+    name,
+    source: resolveIncludes(source, path),
+    enabled,
+  };
 }
