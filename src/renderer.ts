@@ -54,6 +54,10 @@ export class Renderer {
     return this.postProcessPipeline.updatePostShader(name, fragmentSource);
   }
 
+  updatePostProcessPasses(postPasses: PostProcessPassConfig[]): string | null {
+    return this.postProcessPipeline.updatePasses(postPasses);
+  }
+
   resize(): [number, number] {
     const dpr = window.devicePixelRatio || 1;
     const width = Math.floor(this.canvas.clientWidth * dpr);

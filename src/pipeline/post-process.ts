@@ -67,6 +67,36 @@ export class PostProcessPipeline {
     }
   }
 
+  updatePasses(passConfigs: PostProcessPassConfig[]): string | null {
+    try {
+      for (const passConfig of passConfigs) {
+        const pass = this.passes.find((pass) => pass.name === passConfig.name);
+        const nextProgram = createProgram(
+          this.gl,
+          vertexSource,
+          passConfig.source
+        );
+
+        if (pass) {
+          this.gl.deleteProgram(pass.program);
+          pass.enabled = passConfig.enabled;
+          pass.program = nextProgram;
+        } else {
+          this.passes.push({
+            name: passConfig.name,
+            enabled: passConfig.enabled,
+            program: nextProgram,
+          });
+        }
+      }
+
+      this.log();
+      return null;
+    } catch (error) {
+      return error instanceof Error ? error.message : String(error);
+    }
+  }
+
   setPassEnabled(name: string, enabled: boolean) {
     const pass = this.passes.find((pass) => pass.name === name);
 
