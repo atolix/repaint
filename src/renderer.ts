@@ -3,9 +3,9 @@ import vertexSource from "./shaders/fullscreen.vert?raw";
 import { Framebuffer } from "./framebuffer";
 import { resolveIncludes } from "./shader-loader";
 import outputSource from "./shaders/output.frag?raw";
-import { sendLogPipeline } from "./logger";
 import { drawPass } from "./pass/draw";
 import type { RenderPass } from "./pass/render";
+import { logPipeline } from "./pipeline/log";
 
 export class Renderer {
   private gl: WebGL2RenderingContext;
@@ -58,7 +58,7 @@ export class Renderer {
       new Framebuffer(gl)
     ]
 
-    this.logPipeline();
+    logPipeline({ postPasses: this.postPasses });
   }
 
   private createProgram(fragmentSource: string) {
@@ -109,28 +109,6 @@ export class Renderer {
     this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
   }
 
-  logPipeline() {
-    sendLogPipeline([
-      {
-        name: "scene",
-        enabled: true,
-        input: "main.frag",
-        output: "sceneFramebuffer",
-      },
-      ...this.postPasses.map((pass, index) => ({
-        name: pass.name,
-        enabled: pass.enabled,
-        input: index === 0 ? "sceneFramebuffer.texture" : "previousPost.texture",
-        output: pass.enabled ? "nextPost/screen" : "skipped",
-      })),
-      {
-        name: "output",
-        enabled: true,
-        input: "finalTexture",
-        output: "screen",
-      },
-    ]);
-  }
 
   setPostPassEnabled(name: string, enabled: boolean) {
     const pass = this.postPasses.find((pass) => pass.name === name);
@@ -138,7 +116,7 @@ export class Renderer {
     if (!pass) return;
 
     pass.enabled = enabled;
-    this.logPipeline();
+    logPipeline({ postPasses: this.postPasses });
   }
 
   render(time: number) {
