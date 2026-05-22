@@ -12,8 +12,9 @@ function logger(): Plugin {
 
         for (const [index, pass] of payload.passes.entries()) {
           const status = pass.enabled ? "on" : "off";
+          const shortcut = pass.shortcut ? ` key:${pass.shortcut}` : "";
           console.log(
-            `${index + 1}. [${status}] ${pass.name}  ${pass.input} -> ${pass.output}`
+            `${index + 1}. [${status}]${shortcut} ${pass.name}  ${pass.input} -> ${pass.output}`
           );
         }
 
