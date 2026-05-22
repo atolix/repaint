@@ -13,7 +13,9 @@ function logger(): Plugin {
         let shortcutIndex = 1;
 
         for (const pass of payload.passes) {
-          const status = pass.enabled ? "on" : "off";
+          const status = pass.enabled
+            ? "\x1b[36mon\x1b[0m"
+            : "\x1b[90moff\x1b[0m";
           const isFixedPass = pass.name === "scene" || pass.name === "output";
 
           if (isFixedPass) {
