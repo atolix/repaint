@@ -1,3 +1,4 @@
+import chromaticAberrationSource from "../../shaders/effects/chromatic-aberration.frag?raw";
 import invertSource from "../../shaders/effects/invert.frag?raw";
 import noiseSource from "../../shaders/effects/noise.frag?raw";
 import vignetteSource from "../../shaders/effects/vignette.frag?raw";
@@ -31,6 +32,13 @@ export function createPostProcessPasses(
       includeResolver,
       false
     ),
+    createPostProcessPass(
+      "chromatic-aberration",
+      chromaticAberrationSource,
+      "./shaders/effects/chromatic-aberration.frag",
+      includeResolver,
+      false
+    ),
   ];
 }
 
@@ -39,6 +47,10 @@ export function createPostProcessIncludeRoots(): ShaderIncludeRoot[] {
     { path: "./shaders/effects/invert.frag", source: invertSource },
     { path: "./shaders/effects/noise.frag", source: noiseSource },
     { path: "./shaders/effects/vignette.frag", source: vignetteSource },
+    {
+      path: "./shaders/effects/chromatic-aberration.frag",
+      source: chromaticAberrationSource,
+    },
   ];
 }
 
