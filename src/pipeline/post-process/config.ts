@@ -2,6 +2,7 @@ import chromaticAberrationSource from "../../shaders/effects/chromatic-aberratio
 import invertSource from "../../shaders/effects/invert.frag?raw";
 import noiseSource from "../../shaders/effects/noise.frag?raw";
 import pixelateSource from "../../shaders/effects/pixelate.frag?raw";
+import scanlinesSource from "../../shaders/effects/scanlines.frag?raw";
 import vignetteSource from "../../shaders/effects/vignette.frag?raw";
 import { resolveIncludes, type ShaderIncludeRoot } from "../../gl/include";
 import type { PostProcessPassConfig } from ".";
@@ -47,6 +48,13 @@ export function createPostProcessPasses(
       includeResolver,
       false
     ),
+    createPostProcessPass(
+      "scanlines",
+      scanlinesSource,
+      "./shaders/effects/scanlines.frag",
+      includeResolver,
+      false
+    ),
   ];
 }
 
@@ -60,6 +68,7 @@ export function createPostProcessIncludeRoots(): ShaderIncludeRoot[] {
       source: chromaticAberrationSource,
     },
     { path: "./shaders/effects/pixelate.frag", source: pixelateSource },
+    { path: "./shaders/effects/scanlines.frag", source: scanlinesSource },
   ];
 }
 
