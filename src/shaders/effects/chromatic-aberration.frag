@@ -11,8 +11,8 @@ uniform sampler2D u_scene;
 out vec4 outColor;
 
 void main() {
-  vec2 uv = gl_FragCoord.xy / u_resolution;
-  vec2 direction = uv - 0.5;
+  vec2 uv = getScreenUV();
+  vec2 direction = getCenteredUV();
   vec2 offset = direction * 0.012;
 
   float red = texture(u_scene, uv + offset).r;

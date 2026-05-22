@@ -1,3 +1,15 @@
+float hash12(vec2 p) {
+  p = fract(p * vec2(123.34, 456.21));
+  p += dot(p, p + 45.32);
+  return fract(p.x * p.y);
+}
+
+vec2 hash22(vec2 p) {
+  vec3 q = fract(vec3(p.xyx) * vec3(123.34, 456.21, 345.45));
+  q += dot(q, q + 45.32);
+  return fract(vec2(q.x * q.y, q.y * q.z));
+}
+
 float rand(vec2 n) {
   return fract(sin(dot(n, vec2(12.9898, 4.141414))) * 43562.6543);
 }
