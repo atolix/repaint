@@ -1,4 +1,5 @@
 import chromaticAberrationSource from "../../shaders/effects/chromatic-aberration.frag?raw";
+import glitchSource from "../../shaders/effects/glitch.frag?raw";
 import invertSource from "../../shaders/effects/invert.frag?raw";
 import noiseSource from "../../shaders/effects/noise.frag?raw";
 import pixelateSource from "../../shaders/effects/pixelate.frag?raw";
@@ -63,6 +64,13 @@ export function createPostProcessPasses(
       includeResolver,
       false
     ),
+    createPostProcessPass(
+      "glitch",
+      glitchSource,
+      "./shaders/effects/glitch.frag",
+      includeResolver,
+      false
+    ),
   ];
 }
 
@@ -78,6 +86,7 @@ export function createPostProcessIncludeRoots(): ShaderIncludeRoot[] {
     { path: "./shaders/effects/pixelate.frag", source: pixelateSource },
     { path: "./shaders/effects/scanlines.frag", source: scanlinesSource },
     { path: "./shaders/effects/posterize.frag", source: posterizeSource },
+    { path: "./shaders/effects/glitch.frag", source: glitchSource },
   ];
 }
 
