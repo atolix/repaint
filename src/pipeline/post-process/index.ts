@@ -79,6 +79,20 @@ export class PostProcessPipeline {
     }
   }
 
+  togglePassAt(index: number): { name: string; enabled: boolean } | null {
+    const pass = this.passes[index];
+
+    if (!pass) return null;
+
+    pass.enabled = !pass.enabled;
+    this.log();
+
+    return {
+      name: pass.name,
+      enabled: pass.enabled,
+    };
+  }
+
   render(options: PostProcessRenderOptions) {
     const {
       inputTexture,

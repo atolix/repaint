@@ -25,6 +25,8 @@ export class Renderer {
     this.scenePass = new ScenePass(gl, sceneSource);
     this.postProcessPipeline = new PostProcessPipeline(gl, postPasses);
     this.debugState = new DebugState();
+
+    this.bindEffectShortcuts();
   }
 
   updateFragmentShader(fragmentSource: string): string | null {
@@ -65,6 +67,23 @@ export class Renderer {
       resolution,
       time: t,
       debugMode,
+    });
+  }
+
+  private bindEffectShortcuts(target: Window = window) {
+    target.addEventListener("keydown", (event) => {
+      if (event.repeat) return;
+
+      const passIndex = Number(event.key) - 1;
+      if (!Number.isInteger(passIndex) || passIndex < 0) return;
+
+      const result = this.postProcessPipeline.togglePassAt(passIndex);
+      if (!result) {
+        console.warn(`post-process pass not found: ${event.key}`);
+        return;
+      }
+
+      console.log(`post-process ${result.name}: ${result.enabled ? "on" : "off"}`);
     });
   }
 }
