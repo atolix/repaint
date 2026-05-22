@@ -10,11 +10,16 @@ function logger(): Plugin {
         console.log("");
         console.log("current:")
 
-        for (const [index, pass] of payload.passes.entries()) {
+        let shortcutIndex = 1;
+
+        for (const pass of payload.passes) {
           const status = pass.enabled ? "on" : "off";
-          const shortcut = pass.shortcut ? ` key:${pass.shortcut}` : "";
+          const prefix = pass.name === "scene" || pass.name === "output"
+            ? "  "
+            : `${shortcutIndex++}.`;
+
           console.log(
-            `${index + 1}. [${status}]${shortcut} ${pass.name}  ${pass.input} -> ${pass.output}`
+            `${prefix} [${status}] ${pass.name}  ${pass.input} -> ${pass.output}`
           );
         }
 

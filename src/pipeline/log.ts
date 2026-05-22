@@ -10,7 +10,6 @@ type PipelineLogPass = {
   enabled: boolean;
   input: string;
   output: string;
-  shortcut?: string;
 }
 
 export function logPipeline({ postPasses }: PipelineLogOptions) {
@@ -24,7 +23,6 @@ export function logPipeline({ postPasses }: PipelineLogOptions) {
     ...postPasses.map((pass, index) => ({
       name: pass.name,
       enabled: pass.enabled,
-      shortcut: String(index + 1),
       input: index === 0 ? "sceneFramebuffer.texture" : "previousPost.texture",
       output: pass.enabled ? "nextPost/screen" : "skipped",
     })),
