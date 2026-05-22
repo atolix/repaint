@@ -1,5 +1,6 @@
 import invertSource from "../../shaders/effects/invert.frag?raw";
 import noiseSource from "../../shaders/effects/noise.frag?raw";
+import vignetteSource from "../../shaders/effects/vignette.frag?raw";
 import { resolveIncludes, type ShaderIncludeRoot } from "../../gl/include";
 import type { PostProcessPassConfig } from ".";
 
@@ -23,6 +24,13 @@ export function createPostProcessPasses(
       includeResolver,
       false
     ),
+    createPostProcessPass(
+      "vignette",
+      vignetteSource,
+      "./shaders/effects/vignette.frag",
+      includeResolver,
+      false
+    ),
   ];
 }
 
@@ -30,6 +38,7 @@ export function createPostProcessIncludeRoots(): ShaderIncludeRoot[] {
   return [
     { path: "./shaders/effects/invert.frag", source: invertSource },
     { path: "./shaders/effects/noise.frag", source: noiseSource },
+    { path: "./shaders/effects/vignette.frag", source: vignetteSource },
   ];
 }
 
