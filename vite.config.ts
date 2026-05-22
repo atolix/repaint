@@ -71,23 +71,46 @@ function logger(): Plugin {
         console.log("");
         console.log("[shader] include graph:");
 
-        for (const [path, includes] of Object.entries(payload.graph)) {
-          console.log(`   ${path}`);
-
-          if ((includes as string[]).length === 0) {
-            console.log("      (no includes)");
-            continue;
-          }
-
-          for (const includePath of includes as string[]) {
-            console.log(`      -> ${includePath}`);
-          }
-        }
+        logIncludeTree(payload.graph);
 
         console.log("");
       });
     }
   }
+}
+
+function logIncludeTree(graph: Record<string, string[]>) {
+  const included = new Set(Object.values(graph).flat());
+  const roots = Object.keys(graph).filter((path) => !included.has(path));
+
+  for (const root of roots) {
+    console.log(`   ${root}`);
+    logIncludeChildren(graph, root, "   ");
+  }
+}
+
+function logIncludeChildren(
+  graph: Record<string, string[]>,
+  path: string,
+  prefix: string,
+  stack = [path]
+) {
+  const includes = graph[path] ?? [];
+
+  includes.forEach((includePath, index) => {
+    const isLast = index === includes.length - 1;
+    const branch = isLast ? "└─" : "├─";
+    const childPrefix = `${prefix}${isLast ? "  " : "│ "}`;
+
+    console.log(`${prefix}${branch} ${includePath}`);
+
+    if (stack.includes(includePath)) {
+      console.log(`${childPrefix}└─ (cycle)`);
+      return;
+    }
+
+    logIncludeChildren(graph, includePath, childPrefix, [...stack, includePath]);
+  });
 }
 
 export default defineConfig({
