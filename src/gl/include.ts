@@ -11,6 +11,13 @@ const shaderModules = Object.fromEntries(
   ])
 );
 
+export type ShaderIncludeRoot = {
+  path: string;
+  source: string;
+};
+
+export type ShaderIncludeGraph = Record<string, string[]>;
+
 export function resolveIncludes(
   source: string,
   from = "./shaders/main.frag",
@@ -19,8 +26,7 @@ export function resolveIncludes(
   return source.replace(
     /#include\s+"(.+?)"/g,
     (_, includePath: string) => {
-      const baseDir = from.split("/").slice(0, -1).join("/");
-      const resolvedPath = normalizePath(`${baseDir}/${includePath}`);
+      const resolvedPath = resolveIncludePath(from, includePath);
 
       if (stack.includes(resolvedPath)) {
         throw new Error(`shader include cycle: ${[...stack, resolvedPath].join(" -> ")}`);
@@ -35,6 +41,49 @@ export function resolveIncludes(
       return resolveIncludes(included, resolvedPath, [...stack, resolvedPath]);
     }
   );
+}
+
+export function collectIncludeGraph(roots: ShaderIncludeRoot[]): ShaderIncludeGraph {
+  const graph: ShaderIncludeGraph = {};
+
+  for (const root of roots) {
+    collectIncludes(root.source, root.path, graph, [root.path]);
+  }
+
+  return graph;
+}
+
+function collectIncludes(
+  source: string,
+  from: string,
+  graph: ShaderIncludeGraph,
+  stack: string[]
+) {
+  const includes = [...source.matchAll(/#include\s+"(.+?)"/g)].map((match) =>
+    resolveIncludePath(from, match[1])
+  );
+
+  graph[from] = includes;
+
+  for (const includePath of includes) {
+    if (stack.includes(includePath)) {
+      throw new Error(`shader include cycle: ${[...stack, includePath].join(" -> ")}`);
+    }
+
+    const included = shaderModules[includePath];
+
+    if (!included) {
+      throw new Error(`shader include not found: ${includePath} from ${from}`);
+    }
+
+    collectIncludes(included, includePath, graph, [...stack, includePath]);
+  }
+}
+
+function resolveIncludePath(from: string, includePath: string) {
+  const baseDir = from.split("/").slice(0, -1).join("/");
+
+  return normalizePath(`${baseDir}/${includePath}`);
 }
 
 function normalizePath(path: string): string {

@@ -1,3 +1,4 @@
+import type { ShaderIncludeGraph } from "./gl/include";
 import { resolveIncludes } from "./gl/include";
 
 export function reloadShader(
@@ -34,6 +35,18 @@ export function logShaderError(path: string, error: string) {
   window.setTimeout(() => {
     try {
       import.meta.hot?.send("shader:error", { path: path, error: error })
+    } catch {
+      console.log('websocket not ready.')
+    }
+  }, 100);
+}
+
+export function logIncludeGraph(graph: ShaderIncludeGraph) {
+  if (!import.meta.hot) return;
+
+  window.setTimeout(() => {
+    try {
+      import.meta.hot?.send("shader:include-graph", { graph })
     } catch {
       console.log('websocket not ready.')
     }

@@ -67,6 +67,26 @@ function logger(): Plugin {
         console.log(`[shader] \x1b[31m[error]\x1b[0m ${payload.path}`);
         console.log(payload.error);
       });
+
+      server.ws.on("shader:include-graph", (payload) => {
+        console.log("");
+        console.log("[shader] include graph:");
+
+        for (const [path, includes] of Object.entries(payload.graph)) {
+          console.log(`   ${path}`);
+
+          if ((includes as string[]).length === 0) {
+            console.log("      (no includes)");
+            continue;
+          }
+
+          for (const includePath of includes as string[]) {
+            console.log(`      -> ${includePath}`);
+          }
+        }
+
+        console.log("");
+      });
     }
   }
 }
