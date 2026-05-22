@@ -8,7 +8,7 @@ function logger(): Plugin {
 
       server.ws.on("pipeline", (payload) => {
         console.log("");
-        console.log("current:")
+        console.log("scene:");
 
         let shortcutIndex = 1;
 
@@ -16,11 +16,22 @@ function logger(): Plugin {
           const status = pass.enabled
             ? "\x1b[36mon\x1b[0m"
             : "\x1b[90moff\x1b[0m";
-          const isFixedPass = pass.name === "scene" || pass.name === "output";
 
-          if (isFixedPass) {
-            console.log(`   ${pass.name}  ${pass.input} -> ${pass.output}`);
+          if (pass.name === "scene") {
+            console.log(`   ${pass.input} -> ${pass.output}`);
             continue;
+          }
+
+          if (pass.name === "output") {
+            console.log("");
+            console.log("output:");
+            console.log(`   ${pass.input} -> ${pass.output}`);
+            continue;
+          }
+
+          if (shortcutIndex === 1) {
+            console.log("");
+            console.log("post-process:");
           }
 
           console.log(
