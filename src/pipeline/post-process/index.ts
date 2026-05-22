@@ -8,6 +8,7 @@ import { logPipeline } from "../log";
 
 export type PostProcessPassConfig = {
   name: string;
+  path: string;
   source: string;
   enabled: boolean;
 };
@@ -56,11 +57,15 @@ export class PostProcessPipeline {
 
     try {
       for (const passConfig of passConfigs) {
-        nextPasses.push({
-          name: passConfig.name,
-          enabled: passConfig.enabled,
-          program: createProgram(this.gl, vertexSource, passConfig.source),
-        });
+        try {
+          nextPasses.push({
+            name: passConfig.name,
+            enabled: passConfig.enabled,
+            program: createProgram(this.gl, vertexSource, passConfig.source),
+          });
+        } catch (error) {
+          throw new Error(formatPassError(passConfig, error));
+        }
       }
 
       for (const pass of this.passes) {
@@ -157,4 +162,14 @@ export class PostProcessPipeline {
   private log() {
     logPipeline({ postPasses: this.passes });
   }
+}
+
+function formatPassError(passConfig: PostProcessPassConfig, error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+
+  return [
+    `post-process shader error: ${passConfig.name}`,
+    `path: ${passConfig.path}`,
+    message,
+  ].join("\n");
 }

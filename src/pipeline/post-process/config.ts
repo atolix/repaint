@@ -18,6 +18,7 @@ function createPostProcessPass(
 ): PostProcessPassConfig {
   return {
     name,
+    path,
     source: resolveIncludes(source, path),
     enabled,
   };

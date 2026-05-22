@@ -5,14 +5,18 @@ export function reloadShader(
   source: string,
   update: (source: string) => string | null,
 ) {
-  const resolvedSource = resolveIncludes(source, path);
-  const error = update(resolvedSource);
+  try {
+    const resolvedSource = resolveIncludes(source, path);
+    const error = update(resolvedSource);
 
-  if (!error) sendSuccessLog(path)
-  else sendErrorLog(path, error)
+    if (!error) logShaderCompiled(path);
+    else logShaderError(path, error);
+  } catch (error) {
+    logShaderError(path, error instanceof Error ? error.message : String(error));
+  }
 }
 
-function sendSuccessLog(path: string) {
+export function logShaderCompiled(path: string) {
   if (!import.meta.hot) return;
 
   window.setTimeout(() => {
@@ -24,7 +28,7 @@ function sendSuccessLog(path: string) {
   }, 100);
 }
 
-function sendErrorLog(path: string, error: string) {
+export function logShaderError(path: string, error: string) {
   if (!import.meta.hot) return;
 
   window.setTimeout(() => {
