@@ -11,6 +11,9 @@ function logger(): Plugin {
         console.log("scene:");
 
         let shortcutIndex = 1;
+        const enabledPostPasses = payload.passes.filter(
+          (pass) => pass.name !== "scene" && pass.name !== "output" && pass.enabled
+        );
 
         for (const pass of payload.passes) {
           const status = pass.enabled
@@ -39,6 +42,14 @@ function logger(): Plugin {
           );
         }
 
+        console.log("");
+        console.log(
+          `enabled: ${
+            enabledPostPasses.length > 0
+              ? enabledPostPasses.map((pass) => pass.name).join(" -> ")
+              : "none"
+          }`
+        );
         console.log("");
       })
 
