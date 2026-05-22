@@ -5,6 +5,9 @@ precision highp float;
 #include "./lib/uniforms.glsl"
 #include "./lib/util.glsl"
 #include "./lib/noise.glsl"
+#include "./lib/color.glsl"
+#include "./lib/sdf.glsl"
+#include "./lib/easing.glsl"
 #include "./lib/debug.glsl"
 
 out vec4 outColor;
