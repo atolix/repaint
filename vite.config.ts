@@ -35,6 +35,13 @@ function logger(): Plugin {
           if (shortcutIndex === 1) {
             console.log("");
             console.log("post-process:");
+            console.log(
+              `   enabled: ${
+                enabledPostPasses.length > 0
+                  ? enabledPostPasses.map((pass) => `[${pass.name}]`).join(" -> ")
+                  : "none"
+              }`
+            );
           }
 
           console.log(
@@ -42,14 +49,6 @@ function logger(): Plugin {
           );
         }
 
-        console.log("");
-        console.log(
-          `enabled: ${
-            enabledPostPasses.length > 0
-              ? enabledPostPasses.map((pass) => pass.name).join(" -> ")
-              : "none"
-          }`
-        );
         console.log("");
       })
 
