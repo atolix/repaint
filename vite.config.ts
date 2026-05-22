@@ -14,12 +14,15 @@ function logger(): Plugin {
 
         for (const pass of payload.passes) {
           const status = pass.enabled ? "on" : "off";
-          const prefix = pass.name === "scene" || pass.name === "output"
-            ? "  "
-            : `${shortcutIndex++}.`;
+          const isFixedPass = pass.name === "scene" || pass.name === "output";
+
+          if (isFixedPass) {
+            console.log(`   ${pass.name}  ${pass.input} -> ${pass.output}`);
+            continue;
+          }
 
           console.log(
-            `${prefix} [${status}] ${pass.name}  ${pass.input} -> ${pass.output}`
+            `${shortcutIndex++}. [${status}] ${pass.name}  ${pass.input} -> ${pass.output}`
           );
         }
 
