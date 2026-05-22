@@ -12,6 +12,12 @@ type PipelineLogPass = {
   output: string;
 }
 
+type ResolutionLogOptions = {
+  width: number;
+  height: number;
+  dpr: number;
+};
+
 export function logPipeline({ postPasses }: PipelineLogOptions) {
   send([
     {
@@ -33,6 +39,12 @@ export function logPipeline({ postPasses }: PipelineLogOptions) {
       output: "screen",
     },
   ]);
+}
+
+export function logResolution({ width, height, dpr }: ResolutionLogOptions) {
+  if (!import.meta.hot) return;
+
+  import.meta.hot.send("resolution", { width, height, dpr });
 }
 
 function send(passes: PipelineLogPass[]) {

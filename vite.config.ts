@@ -42,6 +42,12 @@ function logger(): Plugin {
         console.log("");
       })
 
+      server.ws.on("resolution", (payload) => {
+        console.log(
+          `[render] resolution ${payload.width}x${payload.height} @${payload.dpr}x`
+        );
+      });
+
       server.ws.on("shader:compiled", (payload) => {
         console.log(`[shader] \x1b[36m[compiled]\x1b[0m ${payload.path}`);
       });

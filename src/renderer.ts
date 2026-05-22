@@ -1,6 +1,7 @@
 import { PostProcessPipeline, type PostProcessPassConfig } from "./pipeline/post-process";
 import { DebugState } from "./debug/state";
 import { ScenePass } from "./pipeline/scene";
+import { logResolution } from "./pipeline/log";
 
 export class Renderer {
   private gl: WebGL2RenderingContext;
@@ -47,6 +48,7 @@ export class Renderer {
       this.canvas.height = height;
 
       this.gl.viewport(0, 0, width, height);
+      logResolution({ width, height, dpr });
     }
 
     return [width, height];
