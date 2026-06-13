@@ -44,3 +44,62 @@ float fbm(vec2 p) {
 
   return f;
 }
+
+float fbm(vec2 p, int octaves) {
+  float f = 0.0;
+  float amplitude = 0.5;
+  float totalAmplitude = 0.0;
+
+  for (int i = 0; i < octaves; i++) {
+    f += noise(p) * amplitude;
+    totalAmplitude += amplitude;
+    p *= 2.0;
+    amplitude *= 0.5;
+  }
+
+  return f / max(totalAmplitude, 0.0001);
+}
+
+float ridgedNoise(vec2 p) {
+  return 1.0 - abs(noise(p) * 2.0 - 1.0);
+}
+
+float ridgedFbm(vec2 p) {
+  float f = 0.0;
+  float amplitude = 0.5;
+  float totalAmplitude = 0.0;
+
+  for (int i = 0; i < 5; i++) {
+    f += ridgedNoise(p) * amplitude;
+    totalAmplitude += amplitude;
+    p *= 2.0;
+    amplitude *= 0.5;
+  }
+
+  return f / totalAmplitude;
+}
+
+vec2 domainWarp(vec2 p, float amount) {
+  vec2 q = vec2(
+    fbm(p + vec2(0.0, 0.0)),
+    fbm(p + vec2(5.2, 1.3))
+  );
+  vec2 r = vec2(
+    fbm(p + q * 4.0 + vec2(1.7, 9.2)),
+    fbm(p + q * 4.0 + vec2(8.3, 2.8))
+  );
+
+  return p + (r * 2.0 - 1.0) * amount;
+}
+
+vec2 curlNoise(vec2 p) {
+  const float e = 0.001;
+  float n1 = noise(p + vec2(0.0, e));
+  float n2 = noise(p - vec2(0.0, e));
+  float n3 = noise(p + vec2(e, 0.0));
+  float n4 = noise(p - vec2(e, 0.0));
+  float dx = (n1 - n2) / (2.0 * e);
+  float dy = (n3 - n4) / (2.0 * e);
+
+  return vec2(dx, -dy);
+}
