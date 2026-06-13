@@ -4,6 +4,7 @@ import noiseSource from "../../shaders/effects/noise.frag?raw";
 import pixelateSource from "../../shaders/effects/pixelate.frag?raw";
 import posterizeSource from "../../shaders/effects/posterize.frag?raw";
 import scanlinesSource from "../../shaders/effects/scanlines.frag?raw";
+import sepiaSource from "../../shaders/effects/sepia.frag?raw";
 import vignetteSource from "../../shaders/effects/vignette.frag?raw";
 import { resolveIncludes, type ShaderIncludeRoot } from "../../gl/include";
 import type { PostProcessPassConfig } from ".";
@@ -63,6 +64,13 @@ export function createPostProcessPasses(
       includeResolver,
       false
     ),
+    createPostProcessPass(
+      "sepia",
+      sepiaSource,
+      "./shaders/effects/sepia.frag",
+      includeResolver,
+      false
+    ),
   ];
 }
 
@@ -78,6 +86,7 @@ export function createPostProcessIncludeRoots(): ShaderIncludeRoot[] {
     { path: "./shaders/effects/pixelate.frag", source: pixelateSource },
     { path: "./shaders/effects/scanlines.frag", source: scanlinesSource },
     { path: "./shaders/effects/posterize.frag", source: posterizeSource },
+    { path: "./shaders/effects/sepia.frag", source: sepiaSource },
   ];
 }
 
