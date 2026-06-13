@@ -14,6 +14,9 @@ function logger(): Plugin {
         const enabledPostPasses = payload.passes.filter(
           (pass) => pass.name !== "scene" && pass.name !== "output" && pass.enabled
         );
+        const selectedPostPass = payload.passes.find(
+          (pass) => pass.name !== "scene" && pass.name !== "output" && pass.selected
+        );
 
         for (const pass of payload.passes) {
           const status = pass.enabled
@@ -42,6 +45,7 @@ function logger(): Plugin {
                   : "none"
               }`
             );
+            console.log(`   select: ${selectedPostPass ? `[${selectedPostPass.name}]` : "none"}`);
           }
 
           const marker = pass.selected ? ">" : " ";
