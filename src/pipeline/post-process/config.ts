@@ -1,4 +1,5 @@
 import chromaticAberrationSource from "../../shaders/effects/chromatic-aberration.frag?raw";
+import edgeDetectSource from "../../shaders/effects/edge-detect.frag?raw";
 import invertSource from "../../shaders/effects/invert.frag?raw";
 import noiseSource from "../../shaders/effects/noise.frag?raw";
 import pixelateSource from "../../shaders/effects/pixelate.frag?raw";
@@ -71,6 +72,13 @@ export function createPostProcessPasses(
       includeResolver,
       false
     ),
+    createPostProcessPass(
+      "edge-detect",
+      edgeDetectSource,
+      "./shaders/effects/edge-detect.frag",
+      includeResolver,
+      false
+    ),
   ];
 }
 
@@ -87,6 +95,7 @@ export function createPostProcessIncludeRoots(): ShaderIncludeRoot[] {
     { path: "./shaders/effects/scanlines.frag", source: scanlinesSource },
     { path: "./shaders/effects/posterize.frag", source: posterizeSource },
     { path: "./shaders/effects/sepia.frag", source: sepiaSource },
+    { path: "./shaders/effects/edge-detect.frag", source: edgeDetectSource },
   ];
 }
 
