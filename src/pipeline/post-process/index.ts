@@ -31,6 +31,7 @@ export class PostProcessPipeline {
   private readonly outputProgram: WebGLProgram;
   private readonly framebuffers: [Framebuffer, Framebuffer];
   private readonly passes: PostProcessPass[];
+  private selectedPassIndex = 0;
 
   constructor(gl: WebGL2RenderingContext, passConfigs: PostProcessPassConfig[]) {
     this.gl = gl;
@@ -73,6 +74,9 @@ export class PostProcessPipeline {
       }
 
       this.passes.splice(0, this.passes.length, ...nextPasses);
+      if (this.selectedPassIndex >= this.passes.length) {
+        this.selectedPassIndex = Math.max(0, this.passes.length - 1);
+      }
       this.log();
       return null;
     } catch (error) {
@@ -95,6 +99,19 @@ export class PostProcessPipeline {
     return {
       name: pass.name,
       enabled: pass.enabled,
+    };
+  }
+
+  selectPassAt(index: number): { name: string; index: number } | null {
+    const pass = this.passes[index];
+
+    if (!pass) return null;
+
+    this.selectedPassIndex = index;
+
+    return {
+      name: pass.name,
+      index,
     };
   }
 
