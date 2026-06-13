@@ -3,6 +3,7 @@ type PipelineLogOptions = {
     name: string;
     enabled: boolean;
   }[];
+  selectedPostPassIndex?: number;
 };
 
 type PipelineLogPass = {
@@ -10,6 +11,7 @@ type PipelineLogPass = {
   enabled: boolean;
   input: string;
   output: string;
+  selected?: boolean;
 }
 
 type ResolutionLogOptions = {
@@ -18,7 +20,7 @@ type ResolutionLogOptions = {
   dpr: number;
 };
 
-export function logPipeline({ postPasses }: PipelineLogOptions) {
+export function logPipeline({ postPasses, selectedPostPassIndex }: PipelineLogOptions) {
   send([
     {
       name: "scene",
@@ -31,6 +33,7 @@ export function logPipeline({ postPasses }: PipelineLogOptions) {
       enabled: pass.enabled,
       input: index === 0 ? "sceneFramebuffer.texture" : "previousPost.texture",
       output: pass.enabled ? "nextPost/screen" : "skipped",
+      selected: index === selectedPostPassIndex,
     })),
     {
       name: "output",

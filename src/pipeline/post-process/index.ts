@@ -108,6 +108,7 @@ export class PostProcessPipeline {
     if (!pass) return null;
 
     this.selectedPassIndex = index;
+    this.log();
 
     return {
       name: pass.name,
@@ -177,7 +178,10 @@ export class PostProcessPipeline {
   }
 
   private log() {
-    logPipeline({ postPasses: this.passes });
+    logPipeline({
+      postPasses: this.passes,
+      selectedPostPassIndex: this.selectedPassIndex,
+    });
   }
 }
 

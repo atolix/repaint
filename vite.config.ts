@@ -44,9 +44,9 @@ function logger(): Plugin {
             );
           }
 
-          console.log(
-            `${shortcutIndex++}. [${status}] ${pass.name}  ${pass.input} -> ${pass.output}`
-          );
+          const line =
+            `${shortcutIndex++}. [${status}] ${pass.name}  ${pass.input} -> ${pass.output}`;
+          console.log(pass.selected ? `\x1b[35m${line}\x1b[0m` : line);
         }
 
         console.log("");
