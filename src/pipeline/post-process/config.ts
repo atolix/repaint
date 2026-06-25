@@ -87,10 +87,7 @@ export function createPostProcessIncludeRoots(): ShaderIncludeRoot[] {
     { path: "./shaders/effects/invert.frag", source: invertSource },
     { path: "./shaders/effects/noise.frag", source: noiseSource },
     { path: "./shaders/effects/vignette.frag", source: vignetteSource },
-    {
-      path: "./shaders/effects/chromatic-aberration.frag",
-      source: chromaticAberrationSource,
-    },
+    { path: "./shaders/effects/chromatic-aberration.frag", source: chromaticAberrationSource },
     { path: "./shaders/effects/pixelate.frag", source: pixelateSource },
     { path: "./shaders/effects/scanlines.frag", source: scanlinesSource },
     { path: "./shaders/effects/posterize.frag", source: posterizeSource },
