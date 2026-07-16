@@ -27,13 +27,17 @@ npm run dev
 
 Open the local URL printed by Vite.
 
-While the dev server is running, the custom Vite logger prints:
+While the dev server is running, the custom Vite logger renders a terminal
+dashboard with:
 
 - the current render pipeline
 - canvas render resolution and DPR
 - shader compile status
 - the GLSL include graph
 - shader errors
+
+In an interactive TTY, the dashboard is repainted in place with ANSI escape
+sequences. In CI or non-TTY output, it falls back to normal appended logs.
 
 ## Build
 
@@ -96,7 +100,7 @@ Primary shader editing points:
 | `src/shaders/effects/*.frag` | Post-process effect fragment shaders |
 | `src/pipeline/post-process/config.ts` | Effect order, initial enabled state, and shader source registration |
 | `src/gl/include.ts` | GLSL `#include` resolution and include graph collection |
-| `vite.config.ts` | Dev-server terminal logging for pipeline, resolution, shader status, and includes |
+| `vite.config.ts` | Dev-server terminal dashboard for pipeline, resolution, shader status, and includes |
 
 GLSL files can include shared modules with relative paths:
 
@@ -227,7 +231,7 @@ previous render state is preserved where possible.
 
 | Path | Responsibility |
 | --- | --- |
-| `vite.config.ts` | Defines the Vite config and a custom dev-server logger plugin |
+| `vite.config.ts` | Defines the Vite config and a custom ANSI dev-dashboard plugin |
 | `tsconfig.json` | TypeScript compiler configuration |
 | `package.json` | npm scripts and development dependencies |
 | `package-lock.json` | Locked npm dependency tree |
