@@ -1,3 +1,4 @@
+// import barrelDistortionSource from "../../shaders/effects/barrel-distortion.frag?raw";
 import chromaticAberrationSource from "../../shaders/effects/chromatic-aberration.frag?raw";
 import edgeDetectSource from "../../shaders/effects/edge-detect.frag?raw";
 // import glitchSource from "../../shaders/effects/glitch.frag?raw";
@@ -86,6 +87,12 @@ const postProcessDefinitions = [
   //   name: "glitch",
   //   source: glitchSource,
   //   path: "./shaders/effects/glitch.frag",
+  //   enabled: false,
+  // },
+  // {
+  //   name: "barrel-distortion",
+  //   source: barrelDistortionSource,
+  //   path: "./shaders/effects/barrel-distortion.frag",
   //   enabled: false,
   // },
 ] as const;
