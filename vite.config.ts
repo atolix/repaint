@@ -37,17 +37,18 @@ function logger(): Plugin {
         shader: null,
         includeGraph: null,
       };
+      const writeDashboard = createDashboardWriter();
 
-      console.log(renderDashboard(state));
+      writeDashboard(renderDashboard(state));
 
       server.ws.on("pipeline", (payload) => {
         state.passes = payload.passes;
-        console.log(renderDashboard(state));
-      })
+        writeDashboard(renderDashboard(state));
+      });
 
       server.ws.on("resolution", (payload) => {
         state.resolution = payload;
-        console.log(renderDashboard(state));
+        writeDashboard(renderDashboard(state));
       });
 
       server.ws.on("shader:compiled", (payload) => {
@@ -55,7 +56,7 @@ function logger(): Plugin {
           status: "compiled",
           path: payload.path,
         };
-        console.log(renderDashboard(state));
+        writeDashboard(renderDashboard(state));
       });
 
       server.ws.on("shader:error", (payload) => {
@@ -64,15 +65,38 @@ function logger(): Plugin {
           path: payload.path,
           error: payload.error,
         };
-        console.log(renderDashboard(state));
+        writeDashboard(renderDashboard(state));
       });
 
       server.ws.on("shader:include-graph", (payload) => {
         state.includeGraph = payload.graph;
-        console.log(renderDashboard(state));
+        writeDashboard(renderDashboard(state));
       });
     }
   }
+}
+
+function createDashboardWriter() {
+  const canRepaint = Boolean(process.stdout.isTTY && !process.env.CI);
+  let previousLineCount = 0;
+
+  return (dashboard: string) => {
+    if (!canRepaint) {
+      console.log(dashboard);
+      return;
+    }
+
+    if (previousLineCount > 0) {
+      process.stdout.write(`\x1b[${previousLineCount}F\x1b[0J`);
+    }
+
+    process.stdout.write(`${dashboard}\n`);
+    previousLineCount = countLines(dashboard);
+  };
+}
+
+function countLines(value: string) {
+  return value.split("\n").length;
 }
 
 function renderDashboard(state: DashboardState) {
