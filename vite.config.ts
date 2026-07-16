@@ -1,5 +1,7 @@
 import { defineConfig, type Plugin } from "vite";
 
+const includeGraphPreviewLineLimit = 8;
+
 type PipelinePass = {
   name: string;
   enabled: boolean;
@@ -226,9 +228,20 @@ function renderIncludeGraph(graph: Record<string, string[]> | null) {
     ];
   }
 
+  const treeLines = formatIncludeTree(graph);
+  const previewLines = treeLines.slice(0, includeGraphPreviewLineLimit);
+  const hiddenLineCount = treeLines.length - previewLines.length;
+  const rootCount = countIncludeRoots(graph);
+  const edgeCount = Object.values(graph).reduce(
+    (total, includes) => total + includes.length,
+    0
+  );
+
   return [
     "include graph",
-    ...formatIncludeTree(graph).map((line) => `  ${line}`),
+    `  ${rootCount} roots, ${edgeCount} includes`,
+    ...previewLines.map((line) => `  ${line}`),
+    ...(hiddenLineCount > 0 ? [`  ... ${hiddenLineCount} more lines hidden`] : []),
   ];
 }
 
@@ -240,15 +253,23 @@ function formatEnabledChain(passes: PipelinePass[]) {
 
 function formatIncludeTree(graph: Record<string, string[]>) {
   const lines: string[] = [];
-  const included = new Set(Object.values(graph).flat());
-  const roots = Object.keys(graph).filter((path) => !included.has(path));
 
-  for (const root of roots) {
+  for (const root of listIncludeRoots(graph)) {
     lines.push(root);
     formatIncludeChildren(graph, root, "", lines);
   }
 
   return lines;
+}
+
+function countIncludeRoots(graph: Record<string, string[]>) {
+  return listIncludeRoots(graph).length;
+}
+
+function listIncludeRoots(graph: Record<string, string[]>) {
+  const included = new Set(Object.values(graph).flat());
+
+  return Object.keys(graph).filter((path) => !included.has(path));
 }
 
 function formatIncludeChildren(
