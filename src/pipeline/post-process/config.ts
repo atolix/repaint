@@ -3,6 +3,7 @@ import chromaticAberrationSource from "../../shaders/effects/chromatic-aberratio
 // import contrastSource from "../../shaders/effects/contrast.frag?raw";
 // import duotoneSource from "../../shaders/effects/duotone.frag?raw";
 import edgeDetectSource from "../../shaders/effects/edge-detect.frag?raw";
+// import embossSource from "../../shaders/effects/emboss.frag?raw";
 // import glitchSource from "../../shaders/effects/glitch.frag?raw";
 // import grayscaleSource from "../../shaders/effects/grayscale.frag?raw";
 import invertSource from "../../shaders/effects/invert.frag?raw";
@@ -128,6 +129,12 @@ const postProcessDefinitions = [
   //   name: "mirror",
   //   source: mirrorSource,
   //   path: "./shaders/effects/mirror.frag",
+  //   enabled: false,
+  // },
+  // {
+  //   name: "emboss",
+  //   source: embossSource,
+  //   path: "./shaders/effects/emboss.frag",
   //   enabled: false,
   // },
 ] as const;
