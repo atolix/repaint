@@ -6,6 +6,7 @@ import edgeDetectSource from "../../shaders/effects/edge-detect.frag?raw";
 // import glitchSource from "../../shaders/effects/glitch.frag?raw";
 // import grayscaleSource from "../../shaders/effects/grayscale.frag?raw";
 import invertSource from "../../shaders/effects/invert.frag?raw";
+// import mirrorSource from "../../shaders/effects/mirror.frag?raw";
 import noiseSource from "../../shaders/effects/noise.frag?raw";
 import pixelateSource from "../../shaders/effects/pixelate.frag?raw";
 import posterizeSource from "../../shaders/effects/posterize.frag?raw";
@@ -121,6 +122,12 @@ const postProcessDefinitions = [
   //   name: "swirl",
   //   source: swirlSource,
   //   path: "./shaders/effects/swirl.frag",
+  //   enabled: false,
+  // },
+  // {
+  //   name: "mirror",
+  //   source: mirrorSource,
+  //   path: "./shaders/effects/mirror.frag",
   //   enabled: false,
   // },
 ] as const;
