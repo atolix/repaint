@@ -18,27 +18,19 @@ export type ShaderIncludeRoot = {
 
 export type ShaderIncludeGraph = Record<string, string[]>;
 
+const includePattern = /#include\s+"(.+?)"/g;
+
 export function resolveIncludes(
   source: string,
   from = "./shaders/main.frag",
   stack = [from]
 ): string {
   return source.replace(
-    /#include\s+"(.+?)"/g,
+    includePattern,
     (_, includePath: string) => {
-      const resolvedPath = resolveIncludePath(from, includePath);
+      const { path, source } = readInclude(from, includePath, stack);
 
-      if (stack.includes(resolvedPath)) {
-        throw new Error(`shader include cycle: ${[...stack, resolvedPath].join(" -> ")}`);
-      }
-
-      const included = shaderModules[resolvedPath];
-
-      if (!included) {
-        throw new Error(`shader include not found: ${includePath} from ${from}`);
-      }
-
-      return resolveIncludes(included, resolvedPath, [...stack, resolvedPath]);
+      return resolveIncludes(source, path, [...stack, path]);
     }
   );
 }
@@ -59,25 +51,47 @@ function collectIncludes(
   graph: ShaderIncludeGraph,
   stack: string[]
 ) {
-  const includes = [...source.matchAll(/#include\s+"(.+?)"/g)].map((match) =>
-    resolveIncludePath(from, match[1])
-  );
+  const includes = listIncludePaths(source, from);
 
   graph[from] = includes;
 
   for (const includePath of includes) {
-    if (stack.includes(includePath)) {
-      throw new Error(`shader include cycle: ${[...stack, includePath].join(" -> ")}`);
-    }
-
-    const included = shaderModules[includePath];
-
-    if (!included) {
-      throw new Error(`shader include not found: ${includePath} from ${from}`);
-    }
+    const included = readIncludeByPath(from, includePath, stack);
 
     collectIncludes(included, includePath, graph, [...stack, includePath]);
   }
+}
+
+function listIncludePaths(source: string, from: string) {
+  return [...source.matchAll(includePattern)].map((match) =>
+    resolveIncludePath(from, match[1])
+  );
+}
+
+function readInclude(from: string, includePath: string, stack: string[]) {
+  const path = resolveIncludePath(from, includePath);
+  const source = readIncludeByPath(from, path, stack, includePath);
+
+  return { path, source };
+}
+
+function readIncludeByPath(
+  from: string,
+  path: string,
+  stack: string[],
+  displayPath = path
+) {
+  if (stack.includes(path)) {
+    throw new Error(`shader include cycle: ${[...stack, path].join(" -> ")}`);
+  }
+
+  const source = shaderModules[path];
+
+  if (!source) {
+    throw new Error(`shader include not found: ${displayPath} from ${from}`);
+  }
+
+  return source;
 }
 
 function resolveIncludePath(from: string, includePath: string) {
