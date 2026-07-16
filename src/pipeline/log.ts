@@ -1,3 +1,5 @@
+import { sendHotEvent } from "../hmr";
+
 type PipelineLogOptions = {
   postPasses: {
     name: string;
@@ -21,7 +23,7 @@ type ResolutionLogOptions = {
 };
 
 export function logPipeline({ postPasses, selectedPostPassIndex }: PipelineLogOptions) {
-  send([
+  const passes: PipelineLogPass[] = [
     {
       name: "scene",
       enabled: true,
@@ -41,23 +43,11 @@ export function logPipeline({ postPasses, selectedPostPassIndex }: PipelineLogOp
       input: "finalTexture",
       output: "screen",
     },
-  ]);
+  ];
+
+  sendHotEvent("pipeline", { passes });
 }
 
 export function logResolution({ width, height, dpr }: ResolutionLogOptions) {
-  if (!import.meta.hot) return;
-
-  import.meta.hot.send("resolution", { width, height, dpr });
-}
-
-function send(passes: PipelineLogPass[]) {
-  if (!import.meta.hot) return;
-
-  window.setTimeout(() => {
-    try {
-      import.meta.hot?.send("pipeline", { passes })
-    } catch {
-      console.log('websocket not ready.')
-    }
-  }, 100);
+  sendHotEvent("resolution", { width, height, dpr }, 0);
 }

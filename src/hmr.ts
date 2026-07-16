@@ -1,6 +1,8 @@
 import type { ShaderIncludeGraph } from "./gl/include";
 import { resolveIncludes } from "./gl/include";
 
+type HotEventPayload = Record<string, unknown>;
+
 export function reloadShader(
   path: string,
   source: string,
@@ -18,37 +20,36 @@ export function reloadShader(
 }
 
 export function logShaderCompiled(path: string) {
-  if (!import.meta.hot) return;
-
-  window.setTimeout(() => {
-    try {
-      import.meta.hot?.send("shader:compiled", { path: path })
-    } catch {
-      console.log('websocket not ready.')
-    }
-  }, 100);
+  sendHotEvent("shader:compiled", { path });
 }
 
 export function logShaderError(path: string, error: string) {
-  if (!import.meta.hot) return;
-
-  window.setTimeout(() => {
-    try {
-      import.meta.hot?.send("shader:error", { path: path, error: error })
-    } catch {
-      console.log('websocket not ready.')
-    }
-  }, 100);
+  sendHotEvent("shader:error", { path, error });
 }
 
 export function logIncludeGraph(graph: ShaderIncludeGraph) {
+  sendHotEvent("shader:include-graph", { graph });
+}
+
+export function sendHotEvent(
+  event: string,
+  payload: HotEventPayload,
+  delay = 100
+) {
   if (!import.meta.hot) return;
 
-  window.setTimeout(() => {
+  const send = () => {
     try {
-      import.meta.hot?.send("shader:include-graph", { graph })
+      import.meta.hot?.send(event, payload);
     } catch {
-      console.log('websocket not ready.')
+      console.log("websocket not ready.");
     }
-  }, 100);
+  };
+
+  if (delay > 0) {
+    window.setTimeout(send, delay);
+    return;
+  }
+
+  send();
 }
