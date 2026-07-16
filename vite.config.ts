@@ -1,103 +1,222 @@
 import { defineConfig, type Plugin } from "vite";
 
+type PipelinePass = {
+  name: string;
+  enabled: boolean;
+  input: string;
+  output: string;
+  selected?: boolean;
+};
+
+type ResolutionState = {
+  width: number;
+  height: number;
+  dpr: number;
+};
+
+type ShaderEventState = {
+  status: "compiled" | "error";
+  path: string;
+  error?: string;
+};
+
+type DashboardState = {
+  passes: PipelinePass[];
+  resolution: ResolutionState | null;
+  shader: ShaderEventState | null;
+  includeGraph: Record<string, string[]> | null;
+};
+
 function logger(): Plugin {
   return {
     name: "logger",
     configureServer(server) {
-      console.log("repaint logger plugin loaded");
+      const state: DashboardState = {
+        passes: [],
+        resolution: null,
+        shader: null,
+        includeGraph: null,
+      };
+
+      console.log(renderDashboard(state));
 
       server.ws.on("pipeline", (payload) => {
-        console.log("");
-        console.log("scene:");
-
-        let shortcutIndex = 1;
-        const enabledPostPasses = payload.passes.filter(
-          (pass) => pass.name !== "scene" && pass.name !== "output" && pass.enabled
-        );
-        const selectedPostPass = payload.passes.find(
-          (pass) => pass.name !== "scene" && pass.name !== "output" && pass.selected
-        );
-
-        for (const pass of payload.passes) {
-          const status = pass.enabled
-            ? "\x1b[36mon\x1b[0m"
-            : "\x1b[90moff\x1b[0m";
-
-          if (pass.name === "scene") {
-            console.log(`   ${pass.input} -> ${pass.output}`);
-            continue;
-          }
-
-          if (pass.name === "output") {
-            console.log("");
-            console.log("output:");
-            console.log(`   ${pass.input} -> ${pass.output}`);
-            continue;
-          }
-
-          if (shortcutIndex === 1) {
-            console.log("");
-            console.log("post-process:");
-            console.log(
-              `   enabled: ${
-                enabledPostPasses.length > 0
-                  ? enabledPostPasses.map((pass) => `[${pass.name}]`).join(" -> ")
-                  : "none"
-              }`
-            );
-            console.log(`   select: ${selectedPostPass ? `[${selectedPostPass.name}]` : "none"}`);
-          }
-
-          const marker = pass.selected ? ">" : " ";
-          const line =
-            `${shortcutIndex++}. [${status}] ${pass.name}  ${pass.input} -> ${pass.output}`;
-          console.log(`${marker} ${line}`);
-        }
-
-        console.log("");
+        state.passes = payload.passes;
+        console.log(renderDashboard(state));
       })
 
       server.ws.on("resolution", (payload) => {
-        console.log(
-          `[render] resolution ${payload.width}x${payload.height} @${payload.dpr}x`
-        );
+        state.resolution = payload;
+        console.log(renderDashboard(state));
       });
 
       server.ws.on("shader:compiled", (payload) => {
-        console.log(`[shader] \x1b[36m[compiled]\x1b[0m ${payload.path}`);
+        state.shader = {
+          status: "compiled",
+          path: payload.path,
+        };
+        console.log(renderDashboard(state));
       });
 
       server.ws.on("shader:error", (payload) => {
-        console.log(`[shader] \x1b[31m[error]\x1b[0m ${payload.path}`);
-        console.log(payload.error);
+        state.shader = {
+          status: "error",
+          path: payload.path,
+          error: payload.error,
+        };
+        console.log(renderDashboard(state));
       });
 
       server.ws.on("shader:include-graph", (payload) => {
-        console.log("");
-        console.log("[shader] include graph:");
-
-        logIncludeTree(payload.graph);
-
-        console.log("");
+        state.includeGraph = payload.graph;
+        console.log(renderDashboard(state));
       });
     }
   }
 }
 
-function logIncludeTree(graph: Record<string, string[]>) {
+function renderDashboard(state: DashboardState) {
+  const lines = [
+    "repaint dev",
+    "",
+    ...renderResolution(state.resolution),
+    "",
+    ...renderPipeline(state.passes),
+    "",
+    ...renderShader(state.shader),
+    "",
+    ...renderIncludeGraph(state.includeGraph),
+  ];
+
+  return lines.join("\n");
+}
+
+function renderResolution(resolution: ResolutionState | null) {
+  return [
+    "resolution",
+    resolution
+      ? `  ${resolution.width}x${resolution.height} @${resolution.dpr}x`
+      : "  waiting for first frame",
+  ];
+}
+
+function renderPipeline(passes: PipelinePass[]) {
+  if (passes.length === 0) {
+    return [
+      "scene",
+      "  waiting for pipeline state",
+      "",
+      "post-process",
+      "  waiting for pipeline state",
+      "",
+      "output",
+      "  waiting for pipeline state",
+    ];
+  }
+
+  const scenePass = passes.find((pass) => pass.name === "scene");
+  const outputPass = passes.find((pass) => pass.name === "output");
+  const postPasses = passes.filter(
+    (pass) => pass.name !== "scene" && pass.name !== "output"
+  );
+  const enabledPostPasses = postPasses.filter((pass) => pass.enabled);
+  const selectedPostPass = postPasses.find((pass) => pass.selected);
+  const nameWidth = Math.max(
+    4,
+    ...postPasses.map((pass) => pass.name.length)
+  );
+
+  return [
+    "scene",
+    scenePass ? `  ${scenePass.input} -> ${scenePass.output}` : "  none",
+    "",
+    "post-process",
+    `  enabled: ${formatEnabledChain(enabledPostPasses)}`,
+    `  selected: ${selectedPostPass ? `[${selectedPostPass.name}]` : "none"}`,
+    "",
+    ...postPasses.map((pass, index) =>
+      renderPostProcessPass(pass, index, nameWidth)
+    ),
+    "",
+    "output",
+    outputPass ? `  ${outputPass.input} -> ${outputPass.output}` : "  none",
+  ];
+}
+
+function renderPostProcessPass(
+  pass: PipelinePass,
+  index: number,
+  nameWidth: number
+) {
+  const marker = pass.selected ? ">" : " ";
+  const status = pass.enabled ? color("on ", "cyan") : color("off", "gray");
+  const number = String(index + 1).padStart(2, " ");
+  const name = pass.name.padEnd(nameWidth, " ");
+
+  return `${marker} ${number}. [${status}] ${name}  ${pass.input} -> ${pass.output}`;
+}
+
+function renderShader(shader: ShaderEventState | null) {
+  if (!shader) {
+    return [
+      "shader",
+      "  waiting for compile status",
+    ];
+  }
+
+  const status = shader.status === "compiled"
+    ? color("[compiled]", "cyan")
+    : color("[error]", "red");
+  const lines = [
+    "shader",
+    `  last: ${status} ${shader.path}`,
+  ];
+
+  if (shader.error) {
+    lines.push(...shader.error.split("\n").map((line) => `  ${line}`));
+  }
+
+  return lines;
+}
+
+function renderIncludeGraph(graph: Record<string, string[]> | null) {
+  if (!graph) {
+    return [
+      "include graph",
+      "  waiting for include graph",
+    ];
+  }
+
+  return [
+    "include graph",
+    ...formatIncludeTree(graph).map((line) => `  ${line}`),
+  ];
+}
+
+function formatEnabledChain(passes: PipelinePass[]) {
+  return passes.length > 0
+    ? passes.map((pass) => `[${pass.name}]`).join(" -> ")
+    : "none";
+}
+
+function formatIncludeTree(graph: Record<string, string[]>) {
+  const lines: string[] = [];
   const included = new Set(Object.values(graph).flat());
   const roots = Object.keys(graph).filter((path) => !included.has(path));
 
   for (const root of roots) {
-    console.log(`   ${root}`);
-    logIncludeChildren(graph, root, "   ");
+    lines.push(root);
+    formatIncludeChildren(graph, root, "", lines);
   }
+
+  return lines;
 }
 
-function logIncludeChildren(
+function formatIncludeChildren(
   graph: Record<string, string[]>,
   path: string,
   prefix: string,
+  lines: string[],
   stack = [path]
 ) {
   const includes = graph[path] ?? [];
@@ -107,15 +226,31 @@ function logIncludeChildren(
     const branch = isLast ? "└─" : "├─";
     const childPrefix = `${prefix}${isLast ? "  " : "│ "}`;
 
-    console.log(`${prefix}${branch} ${includePath}`);
+    lines.push(`${prefix}${branch} ${includePath}`);
 
     if (stack.includes(includePath)) {
-      console.log(`${childPrefix}└─ (cycle)`);
+      lines.push(`${childPrefix}└─ (cycle)`);
       return;
     }
 
-    logIncludeChildren(graph, includePath, childPrefix, [...stack, includePath]);
+    formatIncludeChildren(
+      graph,
+      includePath,
+      childPrefix,
+      lines,
+      [...stack, includePath]
+    );
   });
+}
+
+function color(value: string, colorName: "cyan" | "gray" | "red") {
+  const colors = {
+    cyan: "\x1b[36m",
+    gray: "\x1b[90m",
+    red: "\x1b[31m",
+  };
+
+  return `${colors[colorName]}${value}\x1b[0m`;
 }
 
 export default defineConfig({
