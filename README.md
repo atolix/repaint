@@ -55,12 +55,19 @@ Use these keys while the browser page is focused.
 
 | Key | Action |
 | --- | --- |
-| `1` - `9` | Toggle the matching post-process pass on or off |
-| `Shift` + `1` - `9` | Select the matching post-process pass in the terminal log |
+| `ArrowDown` / `]` | Select the next post-process pass |
+| `ArrowUp` / `[` | Select the previous post-process pass |
+| `Space` / `Enter` | Toggle the selected post-process pass on or off |
+| `Home` | Select the first post-process pass |
+| `End` | Select the last post-process pass |
+| `1` - `9` | Quick select post-process pass 1-9 |
+| `Shift` + `1` - `9` | Quick toggle post-process pass 1-9 |
 | `d` | Cycle debug mode from `0` to `3` |
 
 Post-process pass numbers follow the order in
-`src/pipeline/post-process/config.ts`.
+`src/pipeline/post-process/config.ts`. The selection cursor wraps when moving
+past the first or last pass, so the cursor controls work even when the effect
+list grows beyond the first nine numeric shortcuts.
 
 ## Render Pipeline
 
@@ -196,7 +203,7 @@ previous render state is preserved where possible.
 | `src/pipeline/scene/index.ts` | Renders the main scene fragment shader into an offscreen framebuffer |
 | `src/pipeline/post-process/index.ts` | Runs enabled post-process passes, ping-pongs intermediate framebuffers, and writes the final pass to screen |
 | `src/pipeline/post-process/config.ts` | Registers all effect shaders and defines pass order plus initial enabled flags |
-| `src/pipeline/post-process/controls.ts` | Binds number-key shortcuts for toggling and selecting post-process passes |
+| `src/pipeline/post-process/controls.ts` | Binds keyboard controls for moving the selected pass, toggling it, and using numeric quick shortcuts |
 | `src/pipeline/log.ts` | Sends render-pipeline and resolution state to the Vite dev server logger |
 | `src/debug/state.ts` | Tracks the current debug mode and cycles it with the `d` key |
 
