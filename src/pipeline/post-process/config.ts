@@ -1,5 +1,6 @@
 import chromaticAberrationSource from "../../shaders/effects/chromatic-aberration.frag?raw";
 import edgeDetectSource from "../../shaders/effects/edge-detect.frag?raw";
+// import glitchSource from "../../shaders/effects/glitch.frag?raw";
 // import grayscaleSource from "../../shaders/effects/grayscale.frag?raw";
 import invertSource from "../../shaders/effects/invert.frag?raw";
 import noiseSource from "../../shaders/effects/noise.frag?raw";
@@ -79,6 +80,12 @@ const postProcessDefinitions = [
   //   name: "threshold",
   //   source: thresholdSource,
   //   path: "./shaders/effects/threshold.frag",
+  //   enabled: false,
+  // },
+  // {
+  //   name: "glitch",
+  //   source: glitchSource,
+  //   path: "./shaders/effects/glitch.frag",
   //   enabled: false,
   // },
 ] as const;
