@@ -38,17 +38,18 @@ function logger(): Plugin {
         includeGraph: null,
       };
       const writeDashboard = createDashboardWriter();
+      const render = () => writeDashboard(renderDashboard(state));
 
-      writeDashboard(renderDashboard(state));
+      scheduleInitialDashboardRender(server.httpServer, render);
 
       server.ws.on("pipeline", (payload) => {
         state.passes = payload.passes;
-        writeDashboard(renderDashboard(state));
+        render();
       });
 
       server.ws.on("resolution", (payload) => {
         state.resolution = payload;
-        writeDashboard(renderDashboard(state));
+        render();
       });
 
       server.ws.on("shader:compiled", (payload) => {
@@ -56,7 +57,7 @@ function logger(): Plugin {
           status: "compiled",
           path: payload.path,
         };
-        writeDashboard(renderDashboard(state));
+        render();
       });
 
       server.ws.on("shader:error", (payload) => {
@@ -65,15 +66,29 @@ function logger(): Plugin {
           path: payload.path,
           error: payload.error,
         };
-        writeDashboard(renderDashboard(state));
+        render();
       });
 
       server.ws.on("shader:include-graph", (payload) => {
         state.includeGraph = payload.graph;
-        writeDashboard(renderDashboard(state));
+        render();
       });
     }
   }
+}
+
+function scheduleInitialDashboardRender(
+  httpServer: { once: (event: "listening", listener: () => void) => void } | null,
+  render: () => void
+) {
+  if (!httpServer) {
+    setTimeout(render, 0);
+    return;
+  }
+
+  httpServer.once("listening", () => {
+    setTimeout(render, 50);
+  });
 }
 
 function createDashboardWriter() {
