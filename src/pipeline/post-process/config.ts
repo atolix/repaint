@@ -12,97 +12,81 @@ import type { PostProcessPassConfig } from ".";
 
 type IncludeResolver = typeof resolveIncludes;
 
+const postProcessDefinitions = [
+  {
+    name: "invert",
+    source: invertSource,
+    path: "./shaders/effects/invert.frag",
+    enabled: false,
+  },
+  {
+    name: "noise",
+    source: noiseSource,
+    path: "./shaders/effects/noise.frag",
+    enabled: false,
+  },
+  {
+    name: "vignette",
+    source: vignetteSource,
+    path: "./shaders/effects/vignette.frag",
+    enabled: false,
+  },
+  {
+    name: "chromatic-aberration",
+    source: chromaticAberrationSource,
+    path: "./shaders/effects/chromatic-aberration.frag",
+    enabled: false,
+  },
+  {
+    name: "pixelate",
+    source: pixelateSource,
+    path: "./shaders/effects/pixelate.frag",
+    enabled: false,
+  },
+  {
+    name: "scanlines",
+    source: scanlinesSource,
+    path: "./shaders/effects/scanlines.frag",
+    enabled: false,
+  },
+  {
+    name: "posterize",
+    source: posterizeSource,
+    path: "./shaders/effects/posterize.frag",
+    enabled: false,
+  },
+  {
+    name: "sepia",
+    source: sepiaSource,
+    path: "./shaders/effects/sepia.frag",
+    enabled: false,
+  },
+  {
+    name: "edge-detect",
+    source: edgeDetectSource,
+    path: "./shaders/effects/edge-detect.frag",
+    enabled: false,
+  },
+] as const;
+
 export function createPostProcessPasses(
   includeResolver: IncludeResolver = resolveIncludes
 ): PostProcessPassConfig[] {
-  return [
-    createPostProcessPass(
-      "invert",
-      invertSource,
-      "./shaders/effects/invert.frag",
-      includeResolver,
-      false
-    ),
-    createPostProcessPass(
-      "noise",
-      noiseSource,
-      "./shaders/effects/noise.frag",
-      includeResolver,
-      false
-    ),
-    createPostProcessPass(
-      "vignette",
-      vignetteSource,
-      "./shaders/effects/vignette.frag",
-      includeResolver,
-      false
-    ),
-    createPostProcessPass(
-      "chromatic-aberration",
-      chromaticAberrationSource,
-      "./shaders/effects/chromatic-aberration.frag",
-      includeResolver,
-      false
-    ),
-    createPostProcessPass(
-      "pixelate",
-      pixelateSource,
-      "./shaders/effects/pixelate.frag",
-      includeResolver,
-      false
-    ),
-    createPostProcessPass(
-      "scanlines",
-      scanlinesSource,
-      "./shaders/effects/scanlines.frag",
-      includeResolver,
-      false
-    ),
-    createPostProcessPass(
-      "posterize",
-      posterizeSource,
-      "./shaders/effects/posterize.frag",
-      includeResolver,
-      false
-    ),
-    createPostProcessPass(
-      "sepia",
-      sepiaSource,
-      "./shaders/effects/sepia.frag",
-      includeResolver,
-      false
-    ),
-    createPostProcessPass(
-      "edge-detect",
-      edgeDetectSource,
-      "./shaders/effects/edge-detect.frag",
-      includeResolver,
-      false
-    ),
-  ];
+  return postProcessDefinitions.map((definition) =>
+    createPostProcessPass(definition, includeResolver)
+  );
 }
 
 export function createPostProcessIncludeRoots(): ShaderIncludeRoot[] {
-  return [
-    { path: "./shaders/effects/invert.frag", source: invertSource },
-    { path: "./shaders/effects/noise.frag", source: noiseSource },
-    { path: "./shaders/effects/vignette.frag", source: vignetteSource },
-    { path: "./shaders/effects/chromatic-aberration.frag", source: chromaticAberrationSource },
-    { path: "./shaders/effects/pixelate.frag", source: pixelateSource },
-    { path: "./shaders/effects/scanlines.frag", source: scanlinesSource },
-    { path: "./shaders/effects/posterize.frag", source: posterizeSource },
-    { path: "./shaders/effects/sepia.frag", source: sepiaSource },
-    { path: "./shaders/effects/edge-detect.frag", source: edgeDetectSource },
-  ];
+  return postProcessDefinitions.map(({ path, source }) => ({ path, source }));
 }
 
 function createPostProcessPass(
-  name: string,
-  source: string,
-  path: string,
-  includeResolver: IncludeResolver,
-  enabled = true
+  definition: typeof postProcessDefinitions[number],
+  includeResolver: IncludeResolver
 ): PostProcessPassConfig {
+  const { name, source, path, enabled } = definition;
+
   return {
     name,
     path,
