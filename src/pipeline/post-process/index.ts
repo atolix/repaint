@@ -102,6 +102,17 @@ export class PostProcessPipeline {
     };
   }
 
+  toggleSelectedPass(): { name: string; enabled: boolean; index: number } | null {
+    const result = this.togglePassAt(this.selectedPassIndex);
+
+    if (!result) return null;
+
+    return {
+      ...result,
+      index: this.selectedPassIndex,
+    };
+  }
+
   selectPassAt(index: number): { name: string; index: number } | null {
     const pass = this.passes[index];
 
@@ -114,6 +125,22 @@ export class PostProcessPipeline {
       name: pass.name,
       index,
     };
+  }
+
+  selectNextPass(): { name: string; index: number } | null {
+    return this.selectPassByOffset(1);
+  }
+
+  selectPreviousPass(): { name: string; index: number } | null {
+    return this.selectPassByOffset(-1);
+  }
+
+  selectFirstPass(): { name: string; index: number } | null {
+    return this.selectPassAt(0);
+  }
+
+  selectLastPass(): { name: string; index: number } | null {
+    return this.selectPassAt(this.passes.length - 1);
   }
 
   render(options: PostProcessRenderOptions) {
@@ -183,6 +210,18 @@ export class PostProcessPipeline {
       selectedPostPassIndex: this.selectedPassIndex,
     });
   }
+
+  private selectPassByOffset(offset: number): { name: string; index: number } | null {
+    if (this.passes.length === 0) return null;
+
+    const nextIndex = wrapIndex(this.selectedPassIndex + offset, this.passes.length);
+
+    return this.selectPassAt(nextIndex);
+  }
+}
+
+function wrapIndex(index: number, length: number) {
+  return ((index % length) + length) % length;
 }
 
 function formatPassError(passConfig: PostProcessPassConfig, error: unknown) {
