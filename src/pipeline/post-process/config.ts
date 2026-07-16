@@ -11,6 +11,7 @@ import pixelateSource from "../../shaders/effects/pixelate.frag?raw";
 import posterizeSource from "../../shaders/effects/posterize.frag?raw";
 import scanlinesSource from "../../shaders/effects/scanlines.frag?raw";
 import sepiaSource from "../../shaders/effects/sepia.frag?raw";
+// import swirlSource from "../../shaders/effects/swirl.frag?raw";
 // import thresholdSource from "../../shaders/effects/threshold.frag?raw";
 import vignetteSource from "../../shaders/effects/vignette.frag?raw";
 // import waveDistortionSource from "../../shaders/effects/wave-distortion.frag?raw";
@@ -114,6 +115,12 @@ const postProcessDefinitions = [
   //   name: "duotone",
   //   source: duotoneSource,
   //   path: "./shaders/effects/duotone.frag",
+  //   enabled: false,
+  // },
+  // {
+  //   name: "swirl",
+  //   source: swirlSource,
+  //   path: "./shaders/effects/swirl.frag",
   //   enabled: false,
   // },
 ] as const;
