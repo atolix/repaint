@@ -11,6 +11,7 @@ import scanlinesSource from "../../shaders/effects/scanlines.frag?raw";
 import sepiaSource from "../../shaders/effects/sepia.frag?raw";
 // import thresholdSource from "../../shaders/effects/threshold.frag?raw";
 import vignetteSource from "../../shaders/effects/vignette.frag?raw";
+// import waveDistortionSource from "../../shaders/effects/wave-distortion.frag?raw";
 import { resolveIncludes, type ShaderIncludeRoot } from "../../gl/include";
 import type { PostProcessPassConfig } from ".";
 
@@ -93,6 +94,12 @@ const postProcessDefinitions = [
   //   name: "barrel-distortion",
   //   source: barrelDistortionSource,
   //   path: "./shaders/effects/barrel-distortion.frag",
+  //   enabled: false,
+  // },
+  // {
+  //   name: "wave-distortion",
+  //   source: waveDistortionSource,
+  //   path: "./shaders/effects/wave-distortion.frag",
   //   enabled: false,
   // },
 ] as const;
