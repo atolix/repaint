@@ -1,5 +1,6 @@
 import chromaticAberrationSource from "../../shaders/effects/chromatic-aberration.frag?raw";
 import edgeDetectSource from "../../shaders/effects/edge-detect.frag?raw";
+// import grayscaleSource from "../../shaders/effects/grayscale.frag?raw";
 import invertSource from "../../shaders/effects/invert.frag?raw";
 import noiseSource from "../../shaders/effects/noise.frag?raw";
 import pixelateSource from "../../shaders/effects/pixelate.frag?raw";
@@ -67,6 +68,12 @@ const postProcessDefinitions = [
     path: "./shaders/effects/edge-detect.frag",
     enabled: false,
   },
+  // {
+  //   name: "grayscale",
+  //   source: grayscaleSource,
+  //   path: "./shaders/effects/grayscale.frag",
+  //   enabled: false,
+  // },
 ] as const;
 
 export function createPostProcessPasses(
