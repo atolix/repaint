@@ -1,6 +1,7 @@
 // import barrelDistortionSource from "../../shaders/effects/barrel-distortion.frag?raw";
 import chromaticAberrationSource from "../../shaders/effects/chromatic-aberration.frag?raw";
 // import contrastSource from "../../shaders/effects/contrast.frag?raw";
+// import duotoneSource from "../../shaders/effects/duotone.frag?raw";
 import edgeDetectSource from "../../shaders/effects/edge-detect.frag?raw";
 // import glitchSource from "../../shaders/effects/glitch.frag?raw";
 // import grayscaleSource from "../../shaders/effects/grayscale.frag?raw";
@@ -107,6 +108,12 @@ const postProcessDefinitions = [
   //   name: "contrast",
   //   source: contrastSource,
   //   path: "./shaders/effects/contrast.frag",
+  //   enabled: false,
+  // },
+  // {
+  //   name: "duotone",
+  //   source: duotoneSource,
+  //   path: "./shaders/effects/duotone.frag",
   //   enabled: false,
   // },
 ] as const;
