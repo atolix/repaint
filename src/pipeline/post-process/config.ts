@@ -7,6 +7,7 @@ import pixelateSource from "../../shaders/effects/pixelate.frag?raw";
 import posterizeSource from "../../shaders/effects/posterize.frag?raw";
 import scanlinesSource from "../../shaders/effects/scanlines.frag?raw";
 import sepiaSource from "../../shaders/effects/sepia.frag?raw";
+// import thresholdSource from "../../shaders/effects/threshold.frag?raw";
 import vignetteSource from "../../shaders/effects/vignette.frag?raw";
 import { resolveIncludes, type ShaderIncludeRoot } from "../../gl/include";
 import type { PostProcessPassConfig } from ".";
@@ -72,6 +73,12 @@ const postProcessDefinitions = [
   //   name: "grayscale",
   //   source: grayscaleSource,
   //   path: "./shaders/effects/grayscale.frag",
+  //   enabled: false,
+  // },
+  // {
+  //   name: "threshold",
+  //   source: thresholdSource,
+  //   path: "./shaders/effects/threshold.frag",
   //   enabled: false,
   // },
 ] as const;
