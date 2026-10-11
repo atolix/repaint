@@ -87,6 +87,8 @@ Use these keys while the browser page is focused.
 | `ArrowUp` / `[` | Select the previous post-process pass |
 | `Enter` | Toggle the selected post-process pass on or off |
 | `Space` | Pause or resume shader-time playback |
+| `ArrowRight` | Step forward one frame while paused |
+| `ArrowLeft` | Step backward one frame while paused |
 | `Home` | Select the first post-process pass |
 | `End` | Select the last post-process pass |
 | `1` - `9` | Quick select post-process pass 1-9 |
@@ -190,7 +192,9 @@ The bottom-left controls show elapsed shader time and operate on it without
 stopping the render loop. They provide pause/resume, reset to zero, one 60 fps
 frame step while paused, and `0.25×`, `0.5×`, `1×`, or `2×` playback speed.
 `Space` also pauses or resumes playback. Keeping the render loop active while
-paused lets UI and WebGL context events continue normally.
+paused lets UI and WebGL context events continue normally. While paused, use
+the right and left arrow keys to step forward or backward by one 60 fps frame;
+backward stepping stops at zero.
 
 ## Debug Indicator
 
