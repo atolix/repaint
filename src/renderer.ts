@@ -2,7 +2,7 @@ import { PostProcessPipeline, type PostProcessPassConfig } from "./pipeline/post
 import type { PostProcessSnapshot } from "./pipeline/post-process/types";
 import { DebugState } from "./debug/state";
 import { ScenePass } from "./pipeline/scene";
-import { bindPostProcessShortcuts } from "./pipeline/post-process/controls";
+import type { PostProcessControls } from "./pipeline/post-process/controls";
 import {
   calculateRenderSize,
   type ResolutionState,
@@ -32,7 +32,6 @@ export class Renderer {
   private shaderSources: RendererShaderSources;
   private postPasses: PostProcessPassConfig[];
   private callbacks: RendererCallbacks;
-  private removePostProcessShortcuts: () => void;
   private contextLost = false;
   private disposed = false;
   private passStatesBeforeContextLoss = new Map<string, boolean>();
@@ -67,9 +66,6 @@ export class Renderer {
     );
     this.debugState = new DebugState();
 
-    this.removePostProcessShortcuts = bindPostProcessShortcuts(
-      this.postProcessPipeline,
-    );
     this.canvas.addEventListener("webglcontextlost", this.handleContextLost);
     this.canvas.addEventListener("webglcontextrestored", this.handleContextRestored);
   }
@@ -137,13 +133,16 @@ export class Renderer {
     });
   }
 
+  get postProcessControls(): PostProcessControls {
+    return this.postProcessPipeline;
+  }
+
   dispose() {
     if (this.disposed) return;
     this.disposed = true;
 
     this.canvas.removeEventListener("webglcontextlost", this.handleContextLost);
     this.canvas.removeEventListener("webglcontextrestored", this.handleContextRestored);
-    this.removePostProcessShortcuts();
     this.debugState.dispose();
     this.scenePass.dispose();
     this.postProcessPipeline.dispose();
@@ -186,13 +185,9 @@ export class Renderer {
 
     this.scenePass.dispose();
     this.postProcessPipeline.dispose();
-    this.removePostProcessShortcuts();
 
     this.scenePass = nextScenePass;
     this.postProcessPipeline = nextPostProcessPipeline;
-    this.removePostProcessShortcuts = bindPostProcessShortcuts(
-      this.postProcessPipeline,
-    );
     this.maxTextureSize = this.gl.getParameter(this.gl.MAX_TEXTURE_SIZE) as number;
     this.contextLost = false;
   };

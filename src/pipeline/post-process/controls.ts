@@ -1,63 +1,68 @@
-import type { PostProcessPipeline } from ".";
+import type { SelectedPass, ToggledPass } from "./types";
+
+export type PostProcessControls = {
+  selectNextPass(): SelectedPass | null;
+  selectPreviousPass(): SelectedPass | null;
+  selectFirstPass(): SelectedPass | null;
+  selectLastPass(): SelectedPass | null;
+  selectPassAt(index: number): SelectedPass | null;
+  toggleSelectedPass(): ToggledPass | null;
+  togglePassAt(index: number): Pick<ToggledPass, "name" | "enabled"> | null;
+};
+
+export type PostProcessCommand =
+  | { type: "select-next" }
+  | { type: "select-previous" }
+  | { type: "select-first" }
+  | { type: "select-last" }
+  | { type: "toggle-selected" }
+  | { type: "select-at"; index: number }
+  | { type: "toggle-at"; index: number };
+
+type ShortcutEvent = Pick<
+  KeyboardEvent,
+  "code" | "key" | "repeat" | "shiftKey"
+>;
+
+export function getPostProcessCommand(
+  event: ShortcutEvent,
+): PostProcessCommand | null {
+  if (event.repeat) return null;
+
+  if (event.key === "ArrowDown" || event.key === "]") {
+    return { type: "select-next" };
+  }
+
+  if (event.key === "ArrowUp" || event.key === "[") {
+    return { type: "select-previous" };
+  }
+
+  if (event.key === "Home") return { type: "select-first" };
+  if (event.key === "End") return { type: "select-last" };
+
+  if (event.key === " " || event.key === "Enter") {
+    return { type: "toggle-selected" };
+  }
+
+  const digitMatch = event.code.match(/^(?:Digit|Numpad)([1-9])$/);
+  if (!digitMatch) return null;
+
+  const index = Number(digitMatch[1]) - 1;
+  return event.shiftKey
+    ? { type: "toggle-at", index }
+    : { type: "select-at", index };
+}
 
 export function bindPostProcessShortcuts(
-  pipeline: PostProcessPipeline,
-  target: Window = window
+  getControls: () => PostProcessControls,
+  target: Window = window,
 ) {
   const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.repeat) return;
+    const command = getPostProcessCommand(event);
+    if (!command) return;
 
-    if (event.key === "ArrowDown" || event.key === "]") {
-      event.preventDefault();
-      logSelected(pipeline.selectNextPass());
-      return;
-    }
-
-    if (event.key === "ArrowUp" || event.key === "[") {
-      event.preventDefault();
-      logSelected(pipeline.selectPreviousPass());
-      return;
-    }
-
-    if (event.key === "Home") {
-      event.preventDefault();
-      logSelected(pipeline.selectFirstPass());
-      return;
-    }
-
-    if (event.key === "End") {
-      event.preventDefault();
-      logSelected(pipeline.selectLastPass());
-      return;
-    }
-
-    if (event.key === " " || event.key === "Enter") {
-      event.preventDefault();
-      logToggled(pipeline.toggleSelectedPass());
-      return;
-    }
-
-    const passIndex = getDigitShortcutIndex(event);
-    if (!Number.isInteger(passIndex) || passIndex < 0) return;
-
-    if (event.shiftKey) {
-      const result = pipeline.togglePassAt(passIndex);
-      if (!result) {
-        console.warn(`post-process pass not found: ${passIndex + 1}`);
-        return;
-      }
-
-      console.log(`post-process ${result.name}: ${result.enabled ? "on" : "off"}`);
-      return;
-    }
-
-    const result = pipeline.selectPassAt(passIndex);
-    if (!result) {
-      console.warn(`post-process pass not found: ${event.key}`);
-      return;
-    }
-
-    console.log(`post-process selected ${result.index + 1}: ${result.name}`);
+    event.preventDefault();
+    executePostProcessCommand(getControls(), command);
   };
 
   target.addEventListener("keydown", handleKeyDown);
@@ -65,27 +70,31 @@ export function bindPostProcessShortcuts(
   return () => target.removeEventListener("keydown", handleKeyDown);
 }
 
-function getDigitShortcutIndex(event: KeyboardEvent) {
-  const digitMatch = event.code.match(/^(?:Digit|Numpad)([1-9])$/);
-  const digit = digitMatch ? digitMatch[1] : event.key;
-
-  return Number(digit) - 1;
-}
-
-function logSelected(result: { name: string; index: number } | null) {
-  if (!result) {
-    console.warn("post-process pass not found");
-    return;
+function executePostProcessCommand(
+  controls: PostProcessControls,
+  command: PostProcessCommand,
+) {
+  switch (command.type) {
+    case "select-next":
+      controls.selectNextPass();
+      break;
+    case "select-previous":
+      controls.selectPreviousPass();
+      break;
+    case "select-first":
+      controls.selectFirstPass();
+      break;
+    case "select-last":
+      controls.selectLastPass();
+      break;
+    case "toggle-selected":
+      controls.toggleSelectedPass();
+      break;
+    case "select-at":
+      controls.selectPassAt(command.index);
+      break;
+    case "toggle-at":
+      controls.togglePassAt(command.index);
+      break;
   }
-
-  console.log(`post-process selected ${result.index + 1}: ${result.name}`);
-}
-
-function logToggled(result: { name: string; enabled: boolean } | null) {
-  if (!result) {
-    console.warn("post-process pass not found");
-    return;
-  }
-
-  console.log(`post-process ${result.name}: ${result.enabled ? "on" : "off"}`);
 }
