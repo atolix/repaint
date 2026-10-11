@@ -1,23 +1,22 @@
-import { PostProcessPipeline, type PostProcessPassConfig } from "./pipeline/post-process";
+import type { PostProcessPassConfig } from "./pipeline/post-process";
 import type { PostProcessSnapshot } from "./pipeline/post-process/types";
-import { ScenePass } from "./pipeline/scene";
 import type { PostProcessControls } from "./pipeline/post-process/controls";
 import {
   calculateRenderSize,
   type ResolutionState,
 } from "./renderer/size";
+import {
+  RenderResources,
+  type RendererShaderSources,
+} from "./renderer/resources";
+
+export type { RendererShaderSources } from "./renderer/resources";
 
 const maxRenderDevicePixelRatio = 2;
 
 export type RendererCallbacks = {
   onPostProcessStateChange: (snapshot: PostProcessSnapshot) => void;
   onResolutionChange: (resolution: ResolutionState) => void;
-};
-
-export type RendererShaderSources = {
-  vertex: string;
-  scene: string;
-  output: string;
 };
 
 export type DebugModeState = {
@@ -29,8 +28,7 @@ export class Renderer {
   private canvas: HTMLCanvasElement;
   private maxTextureSize: number;
 
-  private scenePass: ScenePass;
-  private postProcessPipeline: PostProcessPipeline;
+  private resources: RenderResources;
   private debugState: DebugModeState;
   private shaderSources: RendererShaderSources;
   private postPasses: PostProcessPassConfig[];
@@ -57,12 +55,7 @@ export class Renderer {
     this.postPasses = postPasses.map((pass) => ({ ...pass }));
     this.callbacks = callbacks;
 
-    this.scenePass = new ScenePass(
-      gl,
-      shaderSources.vertex,
-      shaderSources.scene,
-    );
-    this.postProcessPipeline = new PostProcessPipeline(
+    this.resources = new RenderResources(
       gl,
       shaderSources,
       postPasses,
@@ -75,17 +68,17 @@ export class Renderer {
   }
 
   updateFragmentShader(fragmentSource: string): string | null {
-    const error = this.scenePass.updateShader(fragmentSource);
+    const error = this.resources.updateSceneShader(fragmentSource);
     if (!error) this.shaderSources.scene = fragmentSource;
 
     return error;
   }
 
   updatePostProcessPasses(postPasses: PostProcessPassConfig[]): string | null {
-    const error = this.postProcessPipeline.updatePasses(postPasses);
+    const error = this.resources.updatePostProcessPasses(postPasses);
 
     if (!error) {
-      const states = this.postProcessPipeline.getPassStates();
+      const states = this.resources.postProcessStates;
       this.postPasses = postPasses.map((pass) => ({
         ...pass,
         enabled: states.get(pass.name) ?? pass.enabled,
@@ -99,37 +92,27 @@ export class Renderer {
     shaderSources: RendererShaderSources,
     postPasses: PostProcessPassConfig[],
   ): string | null {
-    const states = this.postProcessPipeline.getPassStates();
+    const states = this.resources.postProcessStates;
     const restoredPasses = postPasses.map((pass) => ({
       ...pass,
       enabled: states.get(pass.name) ?? pass.enabled,
     }));
-    let nextScenePass: ScenePass | null = null;
-    let nextPostProcessPipeline: PostProcessPipeline | null = null;
+    let nextResources: RenderResources;
 
     try {
-      nextScenePass = new ScenePass(
-        this.gl,
-        shaderSources.vertex,
-        shaderSources.scene,
-      );
-      nextPostProcessPipeline = new PostProcessPipeline(
+      nextResources = new RenderResources(
         this.gl,
         shaderSources,
         restoredPasses,
         this.callbacks.onPostProcessStateChange,
       );
     } catch (error) {
-      nextScenePass?.dispose();
-      nextPostProcessPipeline?.dispose();
       return error instanceof Error ? error.message : String(error);
     }
 
-    this.scenePass.dispose();
-    this.postProcessPipeline.dispose();
+    this.resources.dispose();
 
-    this.scenePass = nextScenePass;
-    this.postProcessPipeline = nextPostProcessPipeline;
+    this.resources = nextResources;
     this.shaderSources = { ...shaderSources };
     this.postPasses = restoredPasses;
 
@@ -164,14 +147,7 @@ export class Renderer {
 
     const t = time * 0.001;
     const debugMode = this.debugState.mode;
-    const sceneTexture = this.scenePass.render({
-      resolution,
-      time: t,
-      debugMode,
-    });
-
-    this.postProcessPipeline.render({
-      inputTexture: sceneTexture,
+    this.resources.render({
       resolution,
       time: t,
       debugMode,
@@ -179,7 +155,7 @@ export class Renderer {
   }
 
   get postProcessControls(): PostProcessControls {
-    return this.postProcessPipeline;
+    return this.resources.postProcessControls;
   }
 
   dispose() {
@@ -188,14 +164,13 @@ export class Renderer {
 
     this.canvas.removeEventListener("webglcontextlost", this.handleContextLost);
     this.canvas.removeEventListener("webglcontextrestored", this.handleContextRestored);
-    this.scenePass.dispose();
-    this.postProcessPipeline.dispose();
+    this.resources.dispose();
   }
 
   private handleContextLost = (event: Event) => {
     event.preventDefault();
     this.contextLost = true;
-    this.passStatesBeforeContextLoss = this.postProcessPipeline.getPassStates();
+    this.passStatesBeforeContextLoss = this.resources.postProcessStates;
   };
 
   private handleContextRestored = () => {
