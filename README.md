@@ -4,8 +4,9 @@ A Vite + TypeScript + WebGL2 shader playground.
 
 `repaint` renders the scene shader in `src/shaders/main.frag` to a fullscreen
 canvas, then optionally routes that image through a configurable post-process
-pipeline. The browser UI is intentionally only the canvas; development feedback
-is reported through the Vite terminal logs.
+pipeline. The browser UI keeps the canvas full-screen and overlays a collapsible
+effect inspector. Development diagnostics are also reported through the Vite
+terminal logs.
 
 ## Requirements
 
@@ -90,6 +91,7 @@ Use these keys while the browser page is focused.
 | `1` - `9` | Quick select post-process pass 1-9 |
 | `Shift` + `1` - `9` | Quick toggle post-process pass 1-9 |
 | `d` | Cycle debug mode from `0` to `3` |
+| `p` | Show or hide the effect inspector |
 
 Post-process pass numbers follow the order in
 `src/pipeline/post-process/config.ts`. The selection cursor wraps when moving
@@ -162,6 +164,28 @@ The current effect passes are all disabled by default.
 
 Use the arrow or bracket controls to select effects beyond the first nine.
 
+## Effect Inspector
+
+The inspector is overlaid on the right side of the canvas and can be collapsed
+with `p` or its bottom-right button. It provides:
+
+- selection and ON/OFF controls for every post-process pass
+- sliders and numeric inputs for the selected pass
+- per-pass parameter reset
+
+The first parameterized effects are:
+
+| Effect | Parameters |
+| --- | --- |
+| `noise` | Amount |
+| `vignette` | Radius, softness |
+| `chromatic-aberration` | Amount |
+| `pixelate` | Pixel size |
+
+Parameter definitions live beside effect registration in
+`src/pipeline/post-process/config.ts`. Values are clamped by the state layer,
+preserved across compatible HMR updates, and passed to shaders as uniforms.
+
 To add an effect, create a fragment shader in `src/shaders/effects/`, then add
 it to `postProcessDefinitions` in `src/pipeline/post-process/config.ts`.
 
@@ -190,6 +214,7 @@ raw shader assets.
 src/main.ts (composition root)
 ├── shader assets + include resolution
 ├── input bindings, HMR, and diagnostic adapters
+├── ParameterPanel                       (DOM adapter)
 └── Renderer
     ├── render size calculation
     └── RenderResources
@@ -214,10 +239,11 @@ callbacks, and controls depend on the narrow `PostProcessControls` interface.
 which makes shared shader reloads atomic. Context loss pauses rendering and
 restoration rebuilds resources while retaining pass state.
 
-`PostProcessPipeline` coordinates rendering but delegates mutable selection and
-enabled state to `PostProcessState`, routing to `buildPostProcessRenderPlan`, and
-program lifetime to `PostProcessPrograms`. The state and planning modules have
-no WebGL or browser dependency, so edge cases can be tested without a canvas.
+`PostProcessPipeline` coordinates rendering but delegates mutable selection,
+enabled state, and parameter values to `PostProcessState`, routing to
+`buildPostProcessRenderPlan`, and program lifetime to `PostProcessPrograms`.
+The state and planning modules have no WebGL or browser dependency, so edge
+cases can be tested without a canvas.
 
 Low-level modules in `src/gl/` and `src/pass/` own WebGL allocation, cleanup,
 and draw calls. They do not depend on renderer or application modules.
@@ -250,6 +276,8 @@ events and output, while `src/dev-dashboard/dashboard.ts` is a pure formatter.
 │   │   └── program.ts
 │   ├── pass/
 │   │   └── draw.ts
+│   ├── ui/
+│   │   └── parameter-panel.ts
 │   ├── pipeline/
 │   │   ├── log.ts
 │   │   ├── scene/
@@ -291,6 +319,7 @@ events and output, while `src/dev-dashboard/dashboard.ts` is a pure formatter.
 | `src/hmr.ts` | Small helpers for shader reloads and Vite websocket events |
 | `src/debug/controls.ts` | Browser keyboard adapter for debug-mode changes |
 | `src/debug/state.ts` | Pure debug-mode state |
+| `src/ui/parameter-panel.ts` | Collapsible DOM inspector for pass selection, toggles, and numeric parameters |
 | `src/style.css` | Fullscreen black canvas layout |
 
 ### WebGL Infrastructure
@@ -309,7 +338,7 @@ events and output, while `src/dev-dashboard/dashboard.ts` is a pure formatter.
 | --- | --- |
 | `src/pipeline/scene/index.ts` | Renders the main scene fragment shader into an offscreen framebuffer |
 | `src/pipeline/post-process/index.ts` | Runs enabled post-process passes, ping-pongs intermediate framebuffers, and writes the final pass to screen |
-| `src/pipeline/post-process/config.ts` | Registers all effect shaders and defines pass order plus initial enabled flags |
+| `src/pipeline/post-process/config.ts` | Registers effect shaders and defines pass order, initial state, and parameter constraints |
 | `src/pipeline/post-process/controls.ts` | Maps keyboard commands onto the narrow post-process controls interface |
 | `src/pipeline/post-process/state.ts` | Pure pass selection, toggling, reconciliation, and snapshot state |
 | `src/pipeline/post-process/plan.ts` | Pure texture-routing plan for enabled passes |
@@ -349,7 +378,7 @@ events and output, while `src/dev-dashboard/dashboard.ts` is a pure formatter.
 ## Notes
 
 - This project is structured as a shader workbench.
-- There is no in-browser control panel; effects and initial state are managed in
-  source code.
+- Effect availability, order, default state, and parameter constraints are
+  managed in source code; runtime values can be edited in the browser inspector.
 - Canvas render resolution is derived from CSS size and `devicePixelRatio`, with
   DPR capped at `2` and dimensions limited by the GPU maximum texture size.
