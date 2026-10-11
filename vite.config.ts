@@ -180,7 +180,9 @@ function renderPipeline(passes: PipelinePass[]) {
     ),
     "",
     "output",
-    outputPass ? `  ${outputPass.input} -> ${outputPass.output}` : "  none",
+    outputPass?.enabled
+      ? `  ${outputPass.input} -> ${outputPass.output}`
+      : "  bypassed; last enabled post-process pass writes to screen",
   ];
 }
 

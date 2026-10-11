@@ -10,6 +10,7 @@ import {
 const canvas = document.querySelector("#canvas") as HTMLCanvasElement;
 const sceneSource = resolveIncludes(mainSource, "./shaders/main.frag");
 const renderer = new Renderer(canvas, sceneSource, createPostProcessPasses());
+logShaderCompiled("./shaders/main.frag");
 logIncludeGraph(createIncludeGraph());
 
 if (import.meta.hot) {
