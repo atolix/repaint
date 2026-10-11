@@ -1,29 +1,52 @@
 import type {
+  PostProcessNumberParameterConfig,
+  PostProcessNumberParameterState,
   PostProcessPassState,
   SelectedPass,
   ToggledPass,
 } from "./types";
 
+type InitialPassState = Omit<PostProcessPassState, "parameters"> & {
+  parameters?: readonly PostProcessNumberParameterConfig[];
+};
+
+type MutablePassState = Omit<PostProcessPassState, "parameters"> & {
+  parameters: PostProcessNumberParameterState[];
+};
+
 export class PostProcessState {
-  private passes: PostProcessPassState[];
+  private passes: MutablePassState[];
   private selectedIndex = 0;
 
-  constructor(passes: readonly PostProcessPassState[]) {
-    assertUniqueNames(passes);
-    this.passes = copyPasses(passes);
+  constructor(passes: readonly InitialPassState[]) {
+    validatePasses(passes);
+    this.passes = createPasses(passes);
   }
 
-  reconcile(passes: readonly PostProcessPassState[]) {
-    assertUniqueNames(passes);
+  reconcile(passes: readonly InitialPassState[]) {
+    validatePasses(passes);
 
     const enabledByName = new Map(
       this.passes.map((pass) => [pass.name, pass.enabled]),
     );
+    const parameterValues = new Map(
+      this.passes.flatMap((pass) =>
+        pass.parameters.map((parameter) => [
+          parameterId(pass.name, parameter.key),
+          parameter.value,
+        ] as const),
+      ),
+    );
     const selectedName = this.passes[this.selectedIndex]?.name;
 
-    this.passes = passes.map((pass) => ({
-      name: pass.name,
+    this.passes = createPasses(passes).map((pass) => ({
+      ...pass,
       enabled: enabledByName.get(pass.name) ?? pass.enabled,
+      parameters: pass.parameters.map((parameter) => ({
+        ...parameter,
+        value: parameterValues.get(parameterId(pass.name, parameter.key))
+          ?? parameter.value,
+      })),
     }));
 
     const selectedIndex = this.passes.findIndex(
@@ -80,11 +103,39 @@ export class PostProcessState {
   }
 
   get snapshot(): readonly PostProcessPassState[] {
-    return this.passes;
+    return this.passes.map(({ name, enabled, parameters }) => ({
+      name,
+      enabled,
+      ...(parameters.length > 0
+        ? { parameters: parameters.map((parameter) => ({ ...parameter })) }
+        : {}),
+    }));
   }
 
   get enabledByName() {
     return new Map(this.passes.map((pass) => [pass.name, pass.enabled]));
+  }
+
+  setParameter(passName: string, key: string, value: number) {
+    if (!Number.isFinite(value)) return null;
+
+    const pass = this.passes.find((candidate) => candidate.name === passName);
+    const parameter = pass?.parameters.find((candidate) => candidate.key === key);
+    if (!pass || !parameter) return null;
+
+    parameter.value = clamp(value, parameter.min, parameter.max);
+    return { passName, key, value: parameter.value };
+  }
+
+  resetPassParameters(passName: string) {
+    const pass = this.passes.find((candidate) => candidate.name === passName);
+    if (!pass) return false;
+
+    for (const parameter of pass.parameters) {
+      parameter.value = parameter.defaultValue;
+    }
+
+    return true;
   }
 
   private selectPassByOffset(offset: number): SelectedPass | null {
@@ -96,11 +147,18 @@ export class PostProcessState {
   }
 }
 
-function copyPasses(passes: readonly PostProcessPassState[]) {
-  return passes.map((pass) => ({ ...pass }));
+function createPasses(passes: readonly InitialPassState[]): MutablePassState[] {
+  return passes.map((pass) => ({
+    name: pass.name,
+    enabled: pass.enabled,
+    parameters: (pass.parameters ?? []).map((parameter) => ({
+      ...parameter,
+      value: parameter.defaultValue,
+    })),
+  }));
 }
 
-function assertUniqueNames(passes: readonly PostProcessPassState[]) {
+function validatePasses(passes: readonly InitialPassState[]) {
   const names = new Set<string>();
 
   for (const pass of passes) {
@@ -109,7 +167,34 @@ function assertUniqueNames(passes: readonly PostProcessPassState[]) {
     }
 
     names.add(pass.name);
+
+    const parameterKeys = new Set<string>();
+    for (const parameter of pass.parameters ?? []) {
+      if (parameterKeys.has(parameter.key)) {
+        throw new Error(
+          `duplicate post-process parameter: ${pass.name}.${parameter.key}`,
+        );
+      }
+      if (
+        parameter.min > parameter.max
+        || parameter.defaultValue < parameter.min
+        || parameter.defaultValue > parameter.max
+        || parameter.step <= 0
+      ) {
+        throw new Error(`invalid post-process parameter: ${pass.name}.${parameter.key}`);
+      }
+
+      parameterKeys.add(parameter.key);
+    }
   }
+}
+
+function parameterId(passName: string, key: string) {
+  return `${passName}\0${key}`;
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
 }
 
 function wrapIndex(index: number, length: number) {

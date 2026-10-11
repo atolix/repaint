@@ -80,4 +80,104 @@ describe("PostProcessState", () => {
       ]),
     ).toThrow("duplicate post-process pass: same");
   });
+
+  it("updates, clamps, and resets numeric parameters", () => {
+    const state = new PostProcessState([
+      {
+        name: "noise",
+        enabled: false,
+        parameters: [
+          {
+            key: "amount",
+            label: "Amount",
+            uniform: "u_amount",
+            min: 0,
+            max: 0.5,
+            step: 0.01,
+            defaultValue: 0.08,
+          },
+        ],
+      },
+    ]);
+
+    expect(state.setParameter("noise", "amount", 2)).toEqual({
+      passName: "noise",
+      key: "amount",
+      value: 0.5,
+    });
+    expect(state.snapshot[0].parameters?.[0].value).toBe(0.5);
+
+    expect(state.resetPassParameters("noise")).toBe(true);
+    expect(state.snapshot[0].parameters?.[0].value).toBe(0.08);
+  });
+
+  it("preserves parameter values by pass and key when reconciled", () => {
+    const parameter = {
+      key: "amount",
+      label: "Amount",
+      uniform: "u_amount",
+      min: 0,
+      max: 1,
+      step: 0.1,
+      defaultValue: 0.2,
+    };
+    const state = new PostProcessState([
+      { name: "noise", enabled: false, parameters: [parameter] },
+    ]);
+    state.setParameter("noise", "amount", 0.7);
+
+    state.reconcile([
+      {
+        name: "noise",
+        enabled: false,
+        parameters: [{ ...parameter, label: "Strength" }],
+      },
+    ]);
+
+    expect(state.snapshot[0].parameters?.[0]).toMatchObject({
+      label: "Strength",
+      value: 0.7,
+    });
+  });
+
+  it("returns defensive snapshots", () => {
+    const state = new PostProcessState([
+      { name: "first", enabled: false },
+    ]);
+    const snapshot = state.snapshot;
+    snapshot[0].enabled = true;
+
+    expect(state.snapshot[0].enabled).toBe(false);
+  });
+
+  it("rejects duplicate and invalid parameter definitions", () => {
+    const parameter = {
+      key: "amount",
+      label: "Amount",
+      uniform: "u_amount",
+      min: 0,
+      max: 1,
+      step: 0.1,
+      defaultValue: 0.2,
+    };
+
+    expect(() =>
+      new PostProcessState([
+        {
+          name: "noise",
+          enabled: false,
+          parameters: [parameter, parameter],
+        },
+      ]),
+    ).toThrow("duplicate post-process parameter: noise.amount");
+    expect(() =>
+      new PostProcessState([
+        {
+          name: "noise",
+          enabled: false,
+          parameters: [{ ...parameter, defaultValue: 2 }],
+        },
+      ]),
+    ).toThrow("invalid post-process parameter: noise.amount");
+  });
 });
