@@ -13,7 +13,8 @@ canvas {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -216,6 +217,63 @@ input {
   padding: 7px 10px;
 }
 
+.playback-controls {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px;
+  border: 1px solid rgb(121 183 193 / 45%);
+  border-radius: 9px;
+  color: #d9f1f5;
+  background: rgb(8 15 14 / 88%);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 28%);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  backdrop-filter: blur(12px);
+}
+
+.playback-controls button,
+.playback-controls select {
+  border: 1px solid rgb(121 183 193 / 32%);
+  border-radius: 6px;
+  color: #d9f1f5;
+  background: rgb(11 23 20 / 90%);
+}
+
+.playback-controls button {
+  padding: 5px 8px;
+  cursor: pointer;
+}
+
+.playback-controls button:hover:not(:disabled),
+.playback-controls button[aria-pressed="true"] {
+  border-color: #79b7c1;
+  background: rgb(121 183 193 / 18%);
+}
+
+.playback-controls button:disabled {
+  color: #60706b;
+  cursor: default;
+}
+
+.playback-controls label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 3px;
+  color: #91a39d;
+}
+
+.playback-controls select {
+  padding: 4px 22px 4px 6px;
+  color-scheme: dark;
+  cursor: pointer;
+}
+
 @media (max-width: 540px) {
   .debug-indicator {
     top: 8px;
@@ -232,6 +290,11 @@ input {
   .parameter-panel-toggle {
     right: 8px;
     bottom: 8px;
+  }
+
+  .playback-controls {
+    bottom: 8px;
+    left: 8px;
   }
 }
 

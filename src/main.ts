@@ -15,6 +15,7 @@ import { DebugState } from "./debug/state";
 import { ParameterPanel } from "./ui/parameter-panel";
 import { DebugIndicator } from "./ui/debug-indicator";
 import { PlaybackClock } from "./time/playback-clock";
+import { PlaybackControls } from "./ui/playback-controls";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#canvas");
 if (!canvas) throw new Error("canvas element not found");
@@ -26,6 +27,7 @@ const resolvedOutputSource = resolveIncludes(
 );
 const debugState = new DebugState();
 const playbackClock = new PlaybackClock();
+const playbackControls = new PlaybackControls(playbackClock);
 const debugIndicator = new DebugIndicator();
 const unsubscribeDebugIndicator = debugState.subscribe((mode) => {
   debugIndicator.render(mode);
@@ -139,6 +141,7 @@ function dispose() {
   unsubscribeDebugIndicator();
   debugIndicator.dispose();
   parameterPanel?.dispose();
+  playbackControls.dispose();
   renderer.dispose();
 }
 

@@ -56,6 +56,14 @@ try {
     throw new Error(`debug indicator was not initialized\n${result.stdout}`);
   }
 
+  if (!result.stdout.includes('aria-label="Playback controls"')) {
+    throw new Error(`playback controls were not initialized\n${result.stdout}`);
+  }
+
+  if (!result.stdout.includes('aria-label="Pause playback"')) {
+    throw new Error(`playback state was not rendered\n${result.stdout}`);
+  }
+
   const consoleErrors = result.stderr
     .split("\n")
     .filter((line) => line.includes("INFO:CONSOLE"))
