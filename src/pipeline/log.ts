@@ -63,5 +63,5 @@ function formatRenderDestination(destination: RenderDestination) {
 }
 
 export function logResolution({ width, height, dpr }: ResolutionState) {
-  sendHotEvent("resolution", { width, height, dpr }, 0);
+  sendHotEvent("resolution", { width, height, dpr });
 }

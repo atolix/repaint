@@ -1,4 +1,4 @@
-import type { ShaderIncludeGraph } from "./gl/include";
+import type { ShaderIncludeGraph } from "./gl/include-resolver";
 import { resolveIncludes } from "./gl/include";
 
 type HotEventPayload = Record<string, unknown>;
@@ -34,22 +34,6 @@ export function logIncludeGraph(graph: ShaderIncludeGraph) {
 export function sendHotEvent(
   event: string,
   payload: HotEventPayload,
-  delay = 100
 ) {
-  if (!import.meta.hot) return;
-
-  const send = () => {
-    try {
-      import.meta.hot?.send(event, payload);
-    } catch {
-      console.log("websocket not ready.");
-    }
-  };
-
-  if (delay > 0) {
-    window.setTimeout(send, delay);
-    return;
-  }
-
-  send();
+  import.meta.hot?.send(event, payload);
 }
