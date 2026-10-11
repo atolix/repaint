@@ -1,4 +1,9 @@
 import { sendHotEvent } from "../hmr";
+import {
+  buildPostProcessRenderPlan,
+  type RenderDestination,
+  type TextureSource,
+} from "./post-process/plan";
 
 type PipelineLogOptions = {
   postPasses: readonly {
@@ -23,9 +28,8 @@ type ResolutionLogOptions = {
 };
 
 export function logPipeline({ postPasses, selectedPostPassIndex }: PipelineLogOptions) {
-  const enabledPasses = postPasses.filter((pass) => pass.enabled);
-  let previousOutput = "sceneFramebuffer.texture";
-  let enabledPassIndex = 0;
+  const plan = buildPostProcessRenderPlan(postPasses);
+  const stepsByPassIndex = new Map(plan.map((step) => [step.passIndex, step]));
   const passes: PipelineLogPass[] = [
     {
       name: "scene",
@@ -34,36 +38,37 @@ export function logPipeline({ postPasses, selectedPostPassIndex }: PipelineLogOp
       output: "sceneFramebuffer",
     },
     ...postPasses.map((pass, index) => {
-      const input = pass.enabled ? previousOutput : "-";
-      const isLastEnabled = enabledPassIndex === enabledPasses.length - 1;
-      const output = pass.enabled
-        ? isLastEnabled
-          ? "screen"
-          : `postFramebuffer${enabledPassIndex % 2}.texture`
-        : "skipped";
-
-      if (pass.enabled) {
-        previousOutput = output;
-        enabledPassIndex += 1;
-      }
+      const step = stepsByPassIndex.get(index);
 
       return {
         name: pass.name,
         enabled: pass.enabled,
-        input,
-        output,
+        input: step ? formatTextureSource(step.input) : "-",
+        output: step ? formatRenderDestination(step.output) : "skipped",
         selected: index === selectedPostPassIndex,
       };
     }),
     {
       name: "output",
-      enabled: enabledPasses.length === 0,
+      enabled: plan.length === 0,
       input: "sceneFramebuffer.texture",
-      output: enabledPasses.length === 0 ? "screen" : "bypassed",
+      output: plan.length === 0 ? "screen" : "bypassed",
     },
   ];
 
   sendHotEvent("pipeline", { passes });
+}
+
+function formatTextureSource(source: TextureSource) {
+  return source.kind === "scene"
+    ? "sceneFramebuffer.texture"
+    : `postFramebuffer${source.index}.texture`;
+}
+
+function formatRenderDestination(destination: RenderDestination) {
+  return destination.kind === "screen"
+    ? "screen"
+    : `postFramebuffer${destination.index}.texture`;
 }
 
 export function logResolution({ width, height, dpr }: ResolutionLogOptions) {

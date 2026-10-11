@@ -7,6 +7,11 @@ import outputSource from "../../shaders/output.frag?raw";
 import { logPipeline } from "../log";
 import { PostProcessState } from "./state";
 import type { PostProcessPassConfig } from "./types";
+import {
+  buildPostProcessRenderPlan,
+  type RenderDestination,
+  type TextureSource,
+} from "./plan";
 
 export type { PostProcessPassConfig } from "./types";
 
@@ -175,29 +180,16 @@ export class PostProcessPipeline {
       time,
       debugMode,
     } = options;
-    const passStates = this.state.snapshot;
-    const enabledPassCount = passStates.reduce(
-      (count, pass) => count + Number(pass.enabled),
-      0,
-    );
+    const plan = buildPostProcessRenderPlan(this.state.snapshot);
 
-    if (enabledPassCount === 0) {
+    if (plan.length === 0) {
       this.renderOutput(inputTexture, resolution);
       return;
     }
 
-    let currentTexture = inputTexture;
-    let enabledPassIndex = 0;
-
-    for (let passIndex = 0; passIndex < this.passes.length; passIndex++) {
-      if (!passStates[passIndex].enabled) continue;
-
-      const pass = this.passes[passIndex];
-
-      const isLast = enabledPassIndex === enabledPassCount - 1;
-      const outputFramebuffer = isLast
-        ? null
-        : this.framebuffers[enabledPassIndex % 2];
+    for (const step of plan) {
+      const pass = this.passes[step.passIndex];
+      const outputFramebuffer = this.resolveDestination(step.output);
 
       if (outputFramebuffer) {
         outputFramebuffer.resize(resolution[0], resolution[1]);
@@ -214,13 +206,10 @@ export class PostProcessPipeline {
         textures: [
           {
             name: "u_scene",
-            texture: currentTexture,
+            texture: this.resolveTexture(step.input, inputTexture),
           },
         ],
       });
-
-      if (outputFramebuffer) currentTexture = outputFramebuffer.texture;
-      enabledPassIndex += 1;
     }
   }
 
@@ -245,6 +234,18 @@ export class PostProcessPipeline {
       postPasses: this.state.snapshot,
       selectedPostPassIndex: this.state.selectedPassIndex,
     });
+  }
+
+  private resolveTexture(source: TextureSource, sceneTexture: WebGLTexture) {
+    return source.kind === "scene"
+      ? sceneTexture
+      : this.framebuffers[source.index].texture;
+  }
+
+  private resolveDestination(destination: RenderDestination) {
+    return destination.kind === "screen"
+      ? null
+      : this.framebuffers[destination.index];
   }
 
   dispose() {
