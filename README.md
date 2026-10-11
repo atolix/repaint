@@ -59,6 +59,23 @@ Run the local unit tests with:
 npm test
 ```
 
+Run the full TypeScript check, including tests and Vite configuration:
+
+```sh
+npm run typecheck
+```
+
+Run the local browser smoke test with a Chromium-compatible executable:
+
+```sh
+npm run test:browser
+```
+
+The browser test starts an ephemeral Vite server, opens the page in headless
+Chromium with software WebGL, and checks that WebGL initialization succeeds
+without browser errors. It uses `chromium` by default; set `CHROMIUM_PATH` to
+use a different executable.
+
 ## Controls
 
 Use these keys while the browser page is focused.
@@ -85,11 +102,11 @@ The current render flow is:
 
 1. `src/main.ts` imports `src/shaders/main.frag` and resolves GLSL `#include`
    directives.
-2. `Renderer` creates the WebGL2 context and owns the high-level render loop
-   dependencies.
-3. `ScenePass` renders the scene shader into an offscreen framebuffer.
-4. `PostProcessPipeline` applies enabled effect passes in order.
-5. The final texture is drawn to the default framebuffer.
+2. `Renderer` owns canvas sizing and WebGL context loss/restoration.
+3. `RenderResources` owns the replaceable scene and post-process resources.
+4. `ScenePass` renders the scene shader into an offscreen framebuffer.
+5. `PostProcessPipeline` builds a render plan and applies enabled effects.
+6. The final texture is drawn to the default framebuffer.
 
 When at least one post-process pass is enabled, the pipeline uses two
 framebuffers in a ping-pong pattern between passes. When no post-process pass is
@@ -156,8 +173,57 @@ During development, Vite HMR updates:
 - `src/pipeline/post-process/config.ts`
 - `src/gl/include.ts`
 
-If shader recompilation fails, the error is printed in the terminal and the
-previous render state is preserved where possible.
+Scene-only updates replace their program only after compilation succeeds.
+Changes to shared includes build a complete replacement resource set and swap
+it in only after every shader compiles, so a partial update cannot mix old and
+new programs. If recompilation fails, the error is printed in the terminal and
+the active render resources remain unchanged.
+
+## Architecture
+
+The code is split into composition, orchestration, pure state/planning, and GPU
+infrastructure layers. Dependencies point inward toward small interfaces and
+pure modules; the WebGL pipeline does not import Vite HMR, terminal logging, or
+raw shader assets.
+
+```text
+src/main.ts (composition root)
+├── shader assets + include resolution
+├── input bindings, HMR, and diagnostic adapters
+└── Renderer
+    ├── render size calculation
+    └── RenderResources
+        ├── ScenePass
+        └── PostProcessPipeline
+            ├── PostProcessState       (pure state transitions)
+            ├── render plan            (pure routing decisions)
+            ├── PostProcessPrograms    (transactional program ownership)
+            └── framebuffer/draw helpers
+
+vite.config.ts
+└── dev-dashboard/dashboard.ts         (pure terminal formatting)
+```
+
+`src/main.ts` is the composition root. It is the only runtime module that
+knows how shader assets, browser input, HMR events, renderer callbacks, and the
+animation loop are connected. Diagnostics are injected into `Renderer` as
+callbacks, and controls depend on the narrow `PostProcessControls` interface.
+
+`Renderer` handles browser and context lifecycle concerns. A complete
+`RenderResources` instance can be constructed before replacing the active one,
+which makes shared shader reloads atomic. Context loss pauses rendering and
+restoration rebuilds resources while retaining pass state.
+
+`PostProcessPipeline` coordinates rendering but delegates mutable selection and
+enabled state to `PostProcessState`, routing to `buildPostProcessRenderPlan`, and
+program lifetime to `PostProcessPrograms`. The state and planning modules have
+no WebGL or browser dependency, so edge cases can be tested without a canvas.
+
+Low-level modules in `src/gl/` and `src/pass/` own WebGL allocation, cleanup,
+and draw calls. They do not depend on renderer or application modules.
+
+The terminal dashboard follows the same boundary: the Vite plugin owns server
+events and output, while `src/dev-dashboard/dashboard.ts` is a pure formatter.
 
 ## Project Layout
 
@@ -167,10 +233,16 @@ previous render state is preserved where possible.
 ├── src/
 │   ├── main.ts
 │   ├── renderer.ts
+│   ├── renderer/
+│   │   ├── resources.ts
+│   │   └── size.ts
 │   ├── hmr.ts
 │   ├── style.css
 │   ├── debug/
+│   │   ├── controls.ts
 │   │   └── state.ts
+│   ├── dev-dashboard/
+│   │   └── dashboard.ts
 │   ├── gl/
 │   │   ├── framebuffer.ts
 │   │   ├── include.ts
@@ -185,18 +257,24 @@ previous render state is preserved where possible.
 │   │   └── post-process/
 │   │       ├── controls.ts
 │   │       ├── config.ts
-│   │       └── index.ts
+│   │       ├── index.ts
+│   │       ├── plan.ts
+│   │       ├── programs.ts
+│   │       ├── state.ts
+│   │       └── types.ts
 │   └── shaders/
 │       ├── fullscreen.vert
 │       ├── main.frag
 │       ├── output.frag
 │       ├── effects/
 │       └── lib/
+├── scripts/
+│   └── browser-smoke.mjs
 ├── test/
-│   ├── include-resolver.test.ts
-│   └── webgl-resources.test.ts
+│   └── *.test.ts
 ├── vite.config.ts
 ├── tsconfig.json
+├── tsconfig.test.json
 ├── package.json
 └── package-lock.json
 ```
@@ -207,8 +285,12 @@ previous render state is preserved where possible.
 | --- | --- |
 | `index.html` | Provides the fullscreen `<canvas id="canvas">` and loads `src/main.ts` |
 | `src/main.ts` | App bootstrap: loads shaders, resolves includes, creates `Renderer`, wires HMR handlers, and starts `requestAnimationFrame` |
-| `src/renderer.ts` | Top-level WebGL renderer: owns the WebGL2 context, resize logic, scene pass, post-process pipeline, and debug state |
+| `src/renderer.ts` | Owns the WebGL2 context lifecycle, canvas resize orchestration, and atomic resource replacement |
+| `src/renderer/resources.ts` | Owns and coordinates the replaceable scene and post-process resource set |
+| `src/renderer/size.ts` | Pure render-size calculation with DPR and texture-size limits |
 | `src/hmr.ts` | Small helpers for shader reloads and Vite websocket events |
+| `src/debug/controls.ts` | Browser keyboard adapter for debug-mode changes |
+| `src/debug/state.ts` | Pure debug-mode state |
 | `src/style.css` | Fullscreen black canvas layout |
 
 ### WebGL Infrastructure
@@ -228,9 +310,12 @@ previous render state is preserved where possible.
 | `src/pipeline/scene/index.ts` | Renders the main scene fragment shader into an offscreen framebuffer |
 | `src/pipeline/post-process/index.ts` | Runs enabled post-process passes, ping-pongs intermediate framebuffers, and writes the final pass to screen |
 | `src/pipeline/post-process/config.ts` | Registers all effect shaders and defines pass order plus initial enabled flags |
-| `src/pipeline/post-process/controls.ts` | Binds keyboard controls for moving the selected pass, toggling it, and using numeric quick shortcuts |
+| `src/pipeline/post-process/controls.ts` | Maps keyboard commands onto the narrow post-process controls interface |
+| `src/pipeline/post-process/state.ts` | Pure pass selection, toggling, reconciliation, and snapshot state |
+| `src/pipeline/post-process/plan.ts` | Pure texture-routing plan for enabled passes |
+| `src/pipeline/post-process/programs.ts` | Transactional compilation, replacement, and disposal of effect programs |
+| `src/pipeline/post-process/types.ts` | Shared post-process configuration and snapshot types |
 | `src/pipeline/log.ts` | Sends render-pipeline and resolution state to the Vite dev server logger |
-| `src/debug/state.ts` | Tracks the current debug mode and cycles it with the `d` key |
 
 ### Shader Assets
 
@@ -253,11 +338,13 @@ previous render state is preserved where possible.
 | Path | Responsibility |
 | --- | --- |
 | `vite.config.ts` | Defines the Vite config and a custom ANSI dev-dashboard plugin |
-| `tsconfig.json` | TypeScript compiler configuration |
+| `src/dev-dashboard/dashboard.ts` | Pure formatter for the terminal dashboard |
+| `scripts/browser-smoke.mjs` | Local headless-Chromium WebGL smoke test |
+| `tsconfig.json` | Application TypeScript compiler configuration |
+| `tsconfig.test.json` | Type-check configuration for tests and Vite config |
 | `package.json` | npm scripts and development dependencies |
 | `package-lock.json` | Locked npm dependency tree |
-| `test/include-resolver.test.ts` | Unit tests for include resolution and dependency graphs |
-| `test/webgl-resources.test.ts` | Unit tests for WebGL allocation failure and cleanup paths |
+| `test/*.test.ts` | Unit tests for pure logic, adapters, and WebGL resource failure/cleanup paths |
 
 ## Notes
 
