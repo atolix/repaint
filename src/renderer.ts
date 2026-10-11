@@ -14,6 +14,12 @@ export class Renderer {
   private scenePass: ScenePass;
   private postProcessPipeline: PostProcessPipeline;
   private debugState: DebugState;
+  private sceneSource: string;
+  private postPasses: PostProcessPassConfig[];
+  private removePostProcessShortcuts: () => void;
+  private contextLost = false;
+  private disposed = false;
+  private passStatesBeforeContextLoss = new Map<string, boolean>();
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -27,20 +33,39 @@ export class Renderer {
     this.gl = gl;
     this.canvas = canvas;
     this.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE) as number;
+    this.sceneSource = sceneSource;
+    this.postPasses = postPasses;
 
     this.scenePass = new ScenePass(gl, sceneSource);
     this.postProcessPipeline = new PostProcessPipeline(gl, postPasses);
     this.debugState = new DebugState();
 
-    bindPostProcessShortcuts(this.postProcessPipeline);
+    this.removePostProcessShortcuts = bindPostProcessShortcuts(
+      this.postProcessPipeline,
+    );
+    this.canvas.addEventListener("webglcontextlost", this.handleContextLost);
+    this.canvas.addEventListener("webglcontextrestored", this.handleContextRestored);
   }
 
   updateFragmentShader(fragmentSource: string): string | null {
-    return this.scenePass.updateShader(fragmentSource);
+    const error = this.scenePass.updateShader(fragmentSource);
+    if (!error) this.sceneSource = fragmentSource;
+
+    return error;
   }
 
   updatePostProcessPasses(postPasses: PostProcessPassConfig[]): string | null {
-    return this.postProcessPipeline.updatePasses(postPasses);
+    const error = this.postProcessPipeline.updatePasses(postPasses);
+
+    if (!error) {
+      const states = this.postProcessPipeline.getPassStates();
+      this.postPasses = postPasses.map((pass) => ({
+        ...pass,
+        enabled: states.get(pass.name) ?? pass.enabled,
+      }));
+    }
+
+    return error;
   }
 
   resize(): [number, number] | null {
@@ -68,6 +93,8 @@ export class Renderer {
   }
 
   render(time: number) {
+    if (this.contextLost || this.disposed) return;
+
     const resolution = this.resize();
     if (!resolution) return;
 
@@ -86,4 +113,55 @@ export class Renderer {
       debugMode,
     });
   }
+
+  dispose() {
+    if (this.disposed) return;
+    this.disposed = true;
+
+    this.canvas.removeEventListener("webglcontextlost", this.handleContextLost);
+    this.canvas.removeEventListener("webglcontextrestored", this.handleContextRestored);
+    this.removePostProcessShortcuts();
+    this.debugState.dispose();
+    this.scenePass.dispose();
+    this.postProcessPipeline.dispose();
+  }
+
+  private handleContextLost = (event: Event) => {
+    event.preventDefault();
+    this.contextLost = true;
+    this.passStatesBeforeContextLoss = this.postProcessPipeline.getPassStates();
+  };
+
+  private handleContextRestored = () => {
+    if (this.disposed) return;
+
+    const restoredPasses = this.postPasses.map((pass) => ({
+      ...pass,
+      enabled: this.passStatesBeforeContextLoss.get(pass.name) ?? pass.enabled,
+    }));
+    let nextScenePass: ScenePass | null = null;
+    let nextPostProcessPipeline: PostProcessPipeline | null = null;
+
+    try {
+      nextScenePass = new ScenePass(this.gl, this.sceneSource);
+      nextPostProcessPipeline = new PostProcessPipeline(this.gl, restoredPasses);
+    } catch (error) {
+      nextScenePass?.dispose();
+      nextPostProcessPipeline?.dispose();
+      console.error("failed to restore WebGL resources", error);
+      return;
+    }
+
+    this.scenePass.dispose();
+    this.postProcessPipeline.dispose();
+    this.removePostProcessShortcuts();
+
+    this.scenePass = nextScenePass;
+    this.postProcessPipeline = nextPostProcessPipeline;
+    this.removePostProcessShortcuts = bindPostProcessShortcuts(
+      this.postProcessPipeline,
+    );
+    this.maxTextureSize = this.gl.getParameter(this.gl.MAX_TEXTURE_SIZE) as number;
+    this.contextLost = false;
+  };
 }

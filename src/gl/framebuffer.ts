@@ -61,4 +61,9 @@ export class Framebuffer {
   unbind() {
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
   }
+
+  dispose() {
+    this.gl.deleteFramebuffer(this.framebuffer);
+    this.gl.deleteTexture(this.texture);
+  }
 }

@@ -7,7 +7,9 @@ import {
   createPostProcessPasses,
 } from "./pipeline/post-process/config";
 
-const canvas = document.querySelector("#canvas") as HTMLCanvasElement;
+const canvas = document.querySelector<HTMLCanvasElement>("#canvas");
+if (!canvas) throw new Error("canvas element not found");
+
 const sceneSource = resolveIncludes(mainSource, "./shaders/main.frag");
 const renderer = new Renderer(canvas, sceneSource, createPostProcessPasses());
 logShaderCompiled("./shaders/main.frag");
@@ -75,13 +77,27 @@ if (import.meta.hot) {
   });
 }
 
+let animationFrameId = requestAnimationFrame(frame);
+let disposed = false;
+
 function frame(time: number) {
+  if (disposed) return;
+
   renderer.render(time);
 
-  requestAnimationFrame(frame);
+  animationFrameId = requestAnimationFrame(frame);
 }
 
-requestAnimationFrame(frame);
+function dispose() {
+  if (disposed) return;
+  disposed = true;
+
+  cancelAnimationFrame(animationFrameId);
+  renderer.dispose();
+}
+
+window.addEventListener("beforeunload", dispose, { once: true });
+import.meta.hot?.dispose(dispose);
 
 function createIncludeGraph(
   collector: typeof collectIncludeGraph = collectIncludeGraph

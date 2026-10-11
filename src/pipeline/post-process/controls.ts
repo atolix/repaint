@@ -4,7 +4,7 @@ export function bindPostProcessShortcuts(
   pipeline: PostProcessPipeline,
   target: Window = window
 ) {
-  target.addEventListener("keydown", (event) => {
+  const handleKeyDown = (event: KeyboardEvent) => {
     if (event.repeat) return;
 
     if (event.key === "ArrowDown" || event.key === "]") {
@@ -58,7 +58,11 @@ export function bindPostProcessShortcuts(
     }
 
     console.log(`post-process selected ${result.index + 1}: ${result.name}`);
-  });
+  };
+
+  target.addEventListener("keydown", handleKeyDown);
+
+  return () => target.removeEventListener("keydown", handleKeyDown);
 }
 
 function getDigitShortcutIndex(event: KeyboardEvent) {

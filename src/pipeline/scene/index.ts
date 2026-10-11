@@ -54,4 +54,9 @@ export class ScenePass {
 
     return this.framebuffer.texture;
   }
+
+  dispose() {
+    this.gl.deleteProgram(this.program);
+    this.framebuffer.dispose();
+  }
 }

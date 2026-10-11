@@ -146,6 +146,10 @@ export class PostProcessPipeline {
     return this.selectPassAt(this.passes.length - 1);
   }
 
+  getPassStates() {
+    return new Map(this.passes.map((pass) => [pass.name, pass.enabled]));
+  }
+
   render(options: PostProcessRenderOptions) {
     const {
       inputTexture,
@@ -228,6 +232,18 @@ export class PostProcessPipeline {
     const nextIndex = wrapIndex(this.selectedPassIndex + offset, this.passes.length);
 
     return this.selectPassAt(nextIndex);
+  }
+
+  dispose() {
+    this.gl.deleteProgram(this.outputProgram);
+
+    for (const pass of this.passes) {
+      this.gl.deleteProgram(pass.program);
+    }
+
+    for (const framebuffer of this.framebuffers) {
+      framebuffer.dispose();
+    }
   }
 }
 
