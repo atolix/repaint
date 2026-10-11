@@ -97,7 +97,9 @@ Use these keys while the browser page is focused.
 Post-process pass numbers follow the order in
 `src/pipeline/post-process/config.ts`. The selection cursor wraps when moving
 past the first or last pass, so the cursor controls work even when the effect
-list grows beyond the first nine numeric shortcuts.
+list grows beyond the first nine numeric shortcuts. The inspector automatically
+scrolls to keep the keyboard selection visible while leaving its scrollbar
+hidden.
 
 ## Render Pipeline
 

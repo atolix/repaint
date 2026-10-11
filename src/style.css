@@ -39,6 +39,11 @@ input {
   background: rgb(8 15 14 / 88%);
   box-shadow: 0 16px 48px rgb(0 0 0 / 35%);
   backdrop-filter: blur(14px);
+  scrollbar-width: none;
+}
+
+.parameter-panel::-webkit-scrollbar {
+  display: none;
 }
 
 .parameter-panel[hidden] {

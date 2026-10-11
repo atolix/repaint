@@ -61,6 +61,7 @@ export class ParameterPanel {
     );
     this.renderParameterSection(snapshot);
     this.updateVisibility();
+    this.ensureSelectionVisible();
     this.positionParameterPanel();
   }
 
@@ -209,6 +210,19 @@ export class ParameterPanel {
     this.toggle.textContent = this.open ? "Hide controls" : "Show controls";
   }
 
+  private ensureSelectionVisible() {
+    if (!this.open || !this.selectedPassButton) return;
+
+    const container = this.root.getBoundingClientRect();
+    const selection = this.selectedPassButton.getBoundingClientRect();
+    this.root.scrollTop += calculateScrollAdjustment(
+      container.top,
+      container.bottom,
+      selection.top,
+      selection.bottom,
+    );
+  }
+
   private positionParameterPanel = () => {
     if (!this.open || !this.hasParameters || !this.selectedPassButton) return;
 
@@ -258,4 +272,15 @@ export function getParameterPanelCommand(
   if (event.code === "KeyP") return "open" as const;
   if (event.code === "KeyQ") return "close" as const;
   return null;
+}
+
+export function calculateScrollAdjustment(
+  containerTop: number,
+  containerBottom: number,
+  itemTop: number,
+  itemBottom: number,
+) {
+  if (itemTop < containerTop) return itemTop - containerTop;
+  if (itemBottom > containerBottom) return itemBottom - containerBottom;
+  return 0;
 }
