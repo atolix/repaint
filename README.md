@@ -85,7 +85,8 @@ Use these keys while the browser page is focused.
 | --- | --- |
 | `ArrowDown` / `]` | Select the next post-process pass |
 | `ArrowUp` / `[` | Select the previous post-process pass |
-| `Space` / `Enter` | Toggle the selected post-process pass on or off |
+| `Enter` | Toggle the selected post-process pass on or off |
+| `Space` | Pause or resume shader-time playback |
 | `Home` | Select the first post-process pass |
 | `End` | Select the last post-process pass |
 | `1` - `9` | Quick select post-process pass 1-9 |
@@ -185,10 +186,11 @@ preserved across compatible HMR updates, and passed to shaders as uniforms.
 
 ## Playback Controls
 
-The bottom-left controls operate on shader time without stopping the render
-loop. They provide pause/resume, reset to zero, one 60 fps frame step while
-paused, and `0.25×`, `0.5×`, `1×`, or `2×` playback speed. Keeping the render
-loop active while paused lets UI and WebGL context events continue normally.
+The bottom-left controls show elapsed shader time and operate on it without
+stopping the render loop. They provide pause/resume, reset to zero, one 60 fps
+frame step while paused, and `0.25×`, `0.5×`, `1×`, or `2×` playback speed.
+`Space` also pauses or resumes playback. Keeping the render loop active while
+paused lets UI and WebGL context events continue normally.
 
 ## Debug Indicator
 
@@ -294,6 +296,7 @@ events and output, while `src/dev-dashboard/dashboard.ts` is a pure formatter.
 │   ├── pass/
 │   │   └── draw.ts
 │   ├── time/
+│   │   ├── controls.ts
 │   │   └── playback-clock.ts
 │   ├── ui/
 │   │   ├── debug-indicator.ts
@@ -343,6 +346,7 @@ events and output, while `src/dev-dashboard/dashboard.ts` is a pure formatter.
 | `src/ui/parameter-panel.ts` | Collapsible DOM inspector for pass selection, toggles, and numeric parameters |
 | `src/ui/debug-indicator.ts` | Top-left label for the active shader debug visualization |
 | `src/time/playback-clock.ts` | Pure shader-time state for pause, reset, frame stepping, and playback speed |
+| `src/time/controls.ts` | Browser keyboard adapter for Space-driven pause/resume |
 | `src/ui/playback-controls.ts` | Bottom-left DOM controls for the playback clock |
 | `src/style.css` | Fullscreen black canvas layout |
 
