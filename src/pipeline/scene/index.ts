@@ -15,9 +15,19 @@ export class ScenePass {
   private program: WebGLProgram;
 
   constructor(gl: WebGL2RenderingContext, fragmentSource: string) {
+    const framebuffer = new Framebuffer(gl);
+    let program: WebGLProgram;
+
+    try {
+      program = createProgram(gl, vertexSource, fragmentSource);
+    } catch (error) {
+      framebuffer.dispose();
+      throw error;
+    }
+
     this.gl = gl;
-    this.framebuffer = new Framebuffer(gl);
-    this.program = createProgram(gl, vertexSource, fragmentSource);
+    this.framebuffer = framebuffer;
+    this.program = program;
   }
 
   updateShader(fragmentSource: string): string | null {

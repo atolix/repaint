@@ -34,21 +34,42 @@ export class PostProcessPipeline {
   private selectedPassIndex = 0;
 
   constructor(gl: WebGL2RenderingContext, passConfigs: PostProcessPassConfig[]) {
+    let outputProgram: WebGLProgram | null = null;
+    const framebuffers: Framebuffer[] = [];
+    const passes: PostProcessPass[] = [];
+
+    try {
+      outputProgram = createProgram(
+        gl,
+        vertexSource,
+        resolveIncludes(outputSource, "./shaders/output.frag")
+      );
+      framebuffers.push(new Framebuffer(gl), new Framebuffer(gl));
+
+      for (const passConfig of passConfigs) {
+        try {
+          passes.push({
+            name: passConfig.name,
+            enabled: passConfig.enabled,
+            program: createProgram(gl, vertexSource, passConfig.source),
+          });
+        } catch (error) {
+          throw new Error(formatPassError(passConfig, error));
+        }
+      }
+    } catch (error) {
+      if (outputProgram) gl.deleteProgram(outputProgram);
+
+      for (const framebuffer of framebuffers) framebuffer.dispose();
+      for (const pass of passes) gl.deleteProgram(pass.program);
+
+      throw error;
+    }
+
     this.gl = gl;
-    this.outputProgram = createProgram(
-      gl,
-      vertexSource,
-      resolveIncludes(outputSource, "./shaders/output.frag")
-    );
-    this.framebuffers = [
-      new Framebuffer(gl),
-      new Framebuffer(gl),
-    ];
-    this.passes = passConfigs.map((pass) => ({
-      name: pass.name,
-      enabled: pass.enabled,
-      program: createProgram(gl, vertexSource, pass.source),
-    }));
+    this.outputProgram = outputProgram;
+    this.framebuffers = [framebuffers[0], framebuffers[1]];
+    this.passes = passes;
 
     this.log();
   }
