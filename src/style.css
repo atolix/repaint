@@ -105,7 +105,7 @@ input {
 
 .parameter-panel-pass button.selected::before {
   content: "> ";
-  color: #66e8b8;
+  color: #79b7c1;
 }
 
 .parameter-panel-pass input {
@@ -164,7 +164,7 @@ input {
 .parameter-panel-control input[type="range"] {
   flex: 1;
   min-width: 0;
-  accent-color: #66e8b8;
+  accent-color: #79b7c1;
 }
 
 .parameter-panel-control input[type="number"] {
