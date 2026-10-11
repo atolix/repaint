@@ -316,5 +316,5 @@ function color(value: string, colorName: "cyan" | "gray" | "red") {
 }
 
 export default defineConfig({
-  plugins: [logger()],
+  plugins: process.env.VITEST ? [] : [logger()],
 })
