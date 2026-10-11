@@ -1,4 +1,5 @@
 export type PlaybackState = Readonly<{
+  elapsedSeconds: number;
   paused: boolean;
   speed: number;
 }>;
@@ -31,6 +32,7 @@ export class PlaybackClock {
     if (previousTimestamp !== null && !this.paused) {
       const deltaSeconds = (timestampMilliseconds - previousTimestamp) * 0.001;
       this.elapsedSeconds += deltaSeconds * this.speed;
+      if (deltaSeconds > 0) this.notify();
     }
 
     return this.elapsedSeconds;
@@ -42,13 +44,17 @@ export class PlaybackClock {
   }
 
   reset() {
+    if (this.elapsedSeconds === 0) return;
+
     this.elapsedSeconds = 0;
+    this.notify();
   }
 
   step() {
     if (!this.paused) return;
 
     this.elapsedSeconds += frameDurationSeconds;
+    this.notify();
   }
 
   setSpeed(speed: number) {
@@ -69,7 +75,11 @@ export class PlaybackClock {
   }
 
   get snapshot(): PlaybackState {
-    return { paused: this.paused, speed: this.speed };
+    return {
+      elapsedSeconds: this.elapsedSeconds,
+      paused: this.paused,
+      speed: this.speed,
+    };
   }
 
   get time(): number {

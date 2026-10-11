@@ -12,6 +12,7 @@ export class PlaybackControls {
   private readonly step: HTMLButtonElement;
   private readonly reset: HTMLButtonElement;
   private readonly speed: HTMLSelectElement;
+  private readonly time: HTMLOutputElement;
   private readonly unsubscribe: () => void;
 
   constructor(clock: PlaybackClock) {
@@ -25,14 +26,22 @@ export class PlaybackControls {
     this.step = createButton("Step", () => this.clock.step());
     this.reset = createButton("Reset", () => this.clock.reset());
     this.speed = createSpeedSelect();
+    this.time = document.createElement("output");
+    this.time.setAttribute("aria-label", "Elapsed time");
     this.speed.addEventListener("change", this.handleSpeedChange);
+
+    const timeSection = document.createElement("span");
+    const timeLabel = document.createElement("span");
+    timeSection.className = "playback-controls-time";
+    timeLabel.textContent = "Time";
+    timeSection.append(timeLabel, this.time);
 
     const speedLabel = document.createElement("label");
     const speedText = document.createElement("span");
     speedText.textContent = "Speed";
     speedLabel.append(speedText, this.speed);
 
-    this.root.append(this.toggle, this.step, this.reset, speedLabel);
+    this.root.append(timeSection, this.toggle, this.step, this.reset, speedLabel);
     document.body.append(this.root);
     this.unsubscribe = this.clock.subscribe((state) => this.render(state));
   }
@@ -45,6 +54,7 @@ export class PlaybackControls {
   }
 
   private render(state: PlaybackState) {
+    this.time.value = formatElapsedTime(state.elapsedSeconds);
     this.toggle.textContent = state.paused ? "Resume" : "Pause";
     this.toggle.setAttribute(
       "aria-label",
@@ -58,6 +68,24 @@ export class PlaybackControls {
   private handleSpeedChange = () => {
     this.clock.setSpeed(Number(this.speed.value));
   };
+}
+
+export function formatElapsedTime(elapsedSeconds: number) {
+  const totalCentiseconds = Math.floor(elapsedSeconds * 100);
+  const centiseconds = totalCentiseconds % 100;
+  const totalSeconds = Math.floor(totalCentiseconds / 100);
+  const seconds = totalSeconds % 60;
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const minutes = totalMinutes % 60;
+  const hours = Math.floor(totalMinutes / 60);
+  const time = [minutes, seconds]
+    .map((part) => String(part).padStart(2, "0"))
+    .join(":");
+  const fraction = String(centiseconds).padStart(2, "0");
+
+  return hours > 0
+    ? `${String(hours).padStart(2, "0")}:${time}.${fraction}`
+    : `${time}.${fraction}`;
 }
 
 function createButton(label: string, action: () => void) {

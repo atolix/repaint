@@ -268,6 +268,20 @@ select {
   color: #91a39d;
 }
 
+.playback-controls-time {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px 0 3px;
+  color: #91a39d;
+}
+
+.playback-controls-time output {
+  min-width: 5.5em;
+  color: #79b7c1;
+  font-variant-numeric: tabular-nums;
+}
+
 .playback-controls select {
   padding: 4px 22px 4px 6px;
   color-scheme: dark;

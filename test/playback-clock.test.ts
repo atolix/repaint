@@ -44,7 +44,7 @@ describe("PlaybackClock", () => {
     expect(clock.time).toBeCloseTo(1 / 60);
   });
 
-  it("publishes control state and supports unsubscribe", () => {
+  it("publishes playback state and supports unsubscribe", () => {
     const clock = new PlaybackClock();
     const listener = vi.fn();
     const unsubscribe = clock.subscribe(listener);
@@ -55,7 +55,25 @@ describe("PlaybackClock", () => {
     clock.reset();
 
     expect(listener).toHaveBeenCalledTimes(3);
-    expect(listener).toHaveBeenLastCalledWith({ paused: true, speed: 0.5 });
+    expect(listener).toHaveBeenLastCalledWith({
+      elapsedSeconds: 0,
+      paused: true,
+      speed: 0.5,
+    });
+  });
+
+  it("publishes elapsed time after ticking, resetting, and stepping", () => {
+    const clock = new PlaybackClock();
+    const elapsedTimes: number[] = [];
+    clock.subscribe((state) => elapsedTimes.push(state.elapsedSeconds));
+
+    clock.tick(0);
+    clock.tick(250);
+    clock.reset();
+    clock.togglePaused();
+    clock.step();
+
+    expect(elapsedTimes).toEqual([0, 0.25, 0, 0, 1 / 60]);
   });
 
   it("rejects invalid timestamps and speeds", () => {

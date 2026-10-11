@@ -64,6 +64,10 @@ try {
     throw new Error(`playback state was not rendered\n${result.stdout}`);
   }
 
+  if (!result.stdout.includes('aria-label="Elapsed time"')) {
+    throw new Error(`elapsed playback time was not rendered\n${result.stdout}`);
+  }
+
   const consoleErrors = result.stderr
     .split("\n")
     .filter((line) => line.includes("INFO:CONSOLE"))

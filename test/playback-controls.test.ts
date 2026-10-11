@@ -3,6 +3,7 @@ import {
   bindPlaybackShortcut,
   getPlaybackCommand,
 } from "../src/time/controls";
+import { formatElapsedTime } from "../src/ui/playback-controls";
 
 describe("getPlaybackCommand", () => {
   it("maps Space to pause/resume", () => {
@@ -35,6 +36,14 @@ describe("bindPlaybackShortcut", () => {
     unbind();
     target.dispatchEvent(keyboardEvent("Space"));
     expect(controls.togglePaused).toHaveBeenCalledOnce();
+  });
+});
+
+describe("formatElapsedTime", () => {
+  it("formats centiseconds and expands to hours when needed", () => {
+    expect(formatElapsedTime(0)).toBe("00:00.00");
+    expect(formatElapsedTime(65.439)).toBe("01:05.43");
+    expect(formatElapsedTime(3_661.2)).toBe("01:01:01.20");
   });
 });
 
