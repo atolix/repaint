@@ -78,21 +78,20 @@ if (import.meta.hot) {
     if (!module) return;
 
     try {
-      const sceneError = renderer.updateFragmentShader(
-        module.resolveIncludes(mainSource, "./shaders/main.frag")
-      );
-      const postProcessError = renderer.updatePostProcessPasses(
-        createPostProcessPasses(module.resolveIncludes)
+      const error = renderer.updateShaders(
+        {
+          vertex: vertexSource,
+          scene: module.resolveIncludes(mainSource, "./shaders/main.frag"),
+          output: module.resolveIncludes(outputSource, "./shaders/output.frag"),
+        },
+        createPostProcessPasses(module.resolveIncludes),
       );
 
       logIncludeGraph(createIncludeGraph(module.collectIncludeGraph));
 
-      if (sceneError) {
-        console.error(sceneError);
-        logShaderError("./shaders/main.frag", sceneError);
-      } else if (postProcessError) {
-        console.error(postProcessError);
-        logShaderError("./pipeline/post-process/config", postProcessError);
+      if (error) {
+        console.error(error);
+        logShaderError("./shaders/lib/*.glsl", error);
       } else {
         logShaderCompiled("./shaders/lib/*.glsl");
       }
@@ -138,6 +137,7 @@ function createIncludeGraph(
 function createIncludeRoots(): ShaderIncludeRoot[] {
   return [
     { path: "./shaders/main.frag", source: mainSource },
+    { path: "./shaders/output.frag", source: outputSource },
     ...createPostProcessIncludeRoots(),
   ];
 }

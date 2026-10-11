@@ -53,8 +53,8 @@ export class Renderer {
     this.gl = gl;
     this.canvas = canvas;
     this.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE) as number;
-    this.shaderSources = shaderSources;
-    this.postPasses = postPasses;
+    this.shaderSources = { ...shaderSources };
+    this.postPasses = postPasses.map((pass) => ({ ...pass }));
     this.callbacks = callbacks;
 
     this.scenePass = new ScenePass(
@@ -93,6 +93,47 @@ export class Renderer {
     }
 
     return error;
+  }
+
+  updateShaders(
+    shaderSources: RendererShaderSources,
+    postPasses: PostProcessPassConfig[],
+  ): string | null {
+    const states = this.postProcessPipeline.getPassStates();
+    const restoredPasses = postPasses.map((pass) => ({
+      ...pass,
+      enabled: states.get(pass.name) ?? pass.enabled,
+    }));
+    let nextScenePass: ScenePass | null = null;
+    let nextPostProcessPipeline: PostProcessPipeline | null = null;
+
+    try {
+      nextScenePass = new ScenePass(
+        this.gl,
+        shaderSources.vertex,
+        shaderSources.scene,
+      );
+      nextPostProcessPipeline = new PostProcessPipeline(
+        this.gl,
+        shaderSources,
+        restoredPasses,
+        this.callbacks.onPostProcessStateChange,
+      );
+    } catch (error) {
+      nextScenePass?.dispose();
+      nextPostProcessPipeline?.dispose();
+      return error instanceof Error ? error.message : String(error);
+    }
+
+    this.scenePass.dispose();
+    this.postProcessPipeline.dispose();
+
+    this.scenePass = nextScenePass;
+    this.postProcessPipeline = nextPostProcessPipeline;
+    this.shaderSources = { ...shaderSources };
+    this.postPasses = restoredPasses;
+
+    return null;
   }
 
   resize(): [number, number] | null {
@@ -160,37 +201,17 @@ export class Renderer {
   private handleContextRestored = () => {
     if (this.disposed) return;
 
-    const restoredPasses = this.postPasses.map((pass) => ({
+    const passes = this.postPasses.map((pass) => ({
       ...pass,
       enabled: this.passStatesBeforeContextLoss.get(pass.name) ?? pass.enabled,
     }));
-    let nextScenePass: ScenePass | null = null;
-    let nextPostProcessPipeline: PostProcessPipeline | null = null;
+    const error = this.updateShaders(this.shaderSources, passes);
 
-    try {
-      nextScenePass = new ScenePass(
-        this.gl,
-        this.shaderSources.vertex,
-        this.shaderSources.scene,
-      );
-      nextPostProcessPipeline = new PostProcessPipeline(
-        this.gl,
-        this.shaderSources,
-        restoredPasses,
-        this.callbacks.onPostProcessStateChange,
-      );
-    } catch (error) {
-      nextScenePass?.dispose();
-      nextPostProcessPipeline?.dispose();
+    if (error) {
       console.error("failed to restore WebGL resources", error);
       return;
     }
 
-    this.scenePass.dispose();
-    this.postProcessPipeline.dispose();
-
-    this.scenePass = nextScenePass;
-    this.postProcessPipeline = nextPostProcessPipeline;
     this.maxTextureSize = this.gl.getParameter(this.gl.MAX_TEXTURE_SIZE) as number;
     this.contextLost = false;
   };
