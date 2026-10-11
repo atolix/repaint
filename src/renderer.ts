@@ -140,17 +140,16 @@ export class Renderer {
     return width > 0 && height > 0 ? [width, height] : null;
   }
 
-  render(time: number) {
+  render(timeSeconds: number) {
     if (this.contextLost || this.disposed) return;
 
     const resolution = this.resize();
     if (!resolution) return;
 
-    const t = time * 0.001;
     const debugMode = this.debugState.mode;
     this.resources.render({
       resolution,
-      time: t,
+      time: timeSeconds,
       debugMode,
     });
   }

@@ -14,6 +14,7 @@ import { bindDebugShortcut } from "./debug/controls";
 import { DebugState } from "./debug/state";
 import { ParameterPanel } from "./ui/parameter-panel";
 import { DebugIndicator } from "./ui/debug-indicator";
+import { PlaybackClock } from "./time/playback-clock";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#canvas");
 if (!canvas) throw new Error("canvas element not found");
@@ -24,6 +25,7 @@ const resolvedOutputSource = resolveIncludes(
   "./shaders/output.frag",
 );
 const debugState = new DebugState();
+const playbackClock = new PlaybackClock();
 const debugIndicator = new DebugIndicator();
 const unsubscribeDebugIndicator = debugState.subscribe((mode) => {
   debugIndicator.render(mode);
@@ -122,7 +124,7 @@ let disposed = false;
 function frame(time: number) {
   if (disposed) return;
 
-  renderer.render(time);
+  renderer.render(playbackClock.tick(time));
 
   animationFrameId = requestAnimationFrame(frame);
 }

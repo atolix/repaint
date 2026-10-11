@@ -170,13 +170,13 @@ describe("Renderer resource lifecycle", () => {
     const lostEvent = new Event("webglcontextlost", { cancelable: true });
 
     canvas.dispatchEvent(lostEvent);
-    renderer.render(1_000);
+    renderer.render(1);
 
     expect(lostEvent.defaultPrevented).toBe(true);
     expect(previous.render).not.toHaveBeenCalled();
 
     canvas.dispatchEvent(new Event("webglcontextrestored"));
-    renderer.render(2_000);
+    renderer.render(2);
 
     const restored = fakes.instances[1];
     expect(restored.passes[0].enabled).toBe(true);
@@ -195,7 +195,7 @@ describe("Renderer resource lifecycle", () => {
     renderer.dispose();
     renderer.dispose();
     canvas.dispatchEvent(new Event("webglcontextrestored"));
-    renderer.render(1_000);
+    renderer.render(1);
 
     expect(resources.dispose).toHaveBeenCalledOnce();
     expect(resources.render).not.toHaveBeenCalled();
