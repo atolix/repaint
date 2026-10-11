@@ -271,9 +271,7 @@ select {
 .playback-controls-time {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 4px 0 3px;
-  color: #91a39d;
+  padding: 0 4px;
 }
 
 .playback-controls-time output {

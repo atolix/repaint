@@ -31,10 +31,8 @@ export class PlaybackControls {
     this.speed.addEventListener("change", this.handleSpeedChange);
 
     const timeSection = document.createElement("span");
-    const timeLabel = document.createElement("span");
     timeSection.className = "playback-controls-time";
-    timeLabel.textContent = "Time";
-    timeSection.append(timeLabel, this.time);
+    timeSection.append(this.time);
 
     const speedLabel = document.createElement("label");
     const speedText = document.createElement("span");
