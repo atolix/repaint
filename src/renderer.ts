@@ -1,5 +1,7 @@
-import type { PostProcessPassConfig } from "./pipeline/post-process";
-import type { PostProcessSnapshot } from "./pipeline/post-process/types";
+import type {
+  PostProcessPassConfig,
+  PostProcessSnapshot,
+} from "./pipeline/post-process/types";
 import type { PostProcessControls } from "./pipeline/post-process/controls";
 import {
   calculateRenderSize,
