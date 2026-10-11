@@ -40,6 +40,10 @@ try {
     throw new Error(`application canvas was not initialized\n${result.stdout}`);
   }
 
+  if (!result.stdout.includes('aria-label="Effect inspector"')) {
+    throw new Error(`effect inspector was not initialized\n${result.stdout}`);
+  }
+
   const consoleErrors = result.stderr
     .split("\n")
     .filter((line) => line.includes("INFO:CONSOLE"))

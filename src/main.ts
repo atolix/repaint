@@ -12,6 +12,7 @@ import { logPipeline, logResolution } from "./pipeline/log";
 import { bindPostProcessShortcuts } from "./pipeline/post-process/controls";
 import { bindDebugShortcut } from "./debug/controls";
 import { DebugState } from "./debug/state";
+import { ParameterPanel } from "./ui/parameter-panel";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#canvas");
 if (!canvas) throw new Error("canvas element not found");
@@ -22,6 +23,7 @@ const resolvedOutputSource = resolveIncludes(
   "./shaders/output.frag",
 );
 const debugState = new DebugState();
+let parameterPanel: ParameterPanel | null = null;
 const renderer = new Renderer(
   canvas,
   {
@@ -31,11 +33,16 @@ const renderer = new Renderer(
   },
   createPostProcessPasses(),
   {
-    onPostProcessStateChange: logPipeline,
+    onPostProcessStateChange: (snapshot) => {
+      logPipeline(snapshot);
+      parameterPanel?.render(snapshot);
+    },
     onResolutionChange: logResolution,
   },
   debugState,
 );
+parameterPanel = new ParameterPanel(() => renderer.postProcessControls);
+parameterPanel.render(renderer.postProcessSnapshot);
 const unbindPostProcessShortcuts = bindPostProcessShortcuts(
   () => renderer.postProcessControls,
 );
@@ -122,6 +129,7 @@ function dispose() {
   cancelAnimationFrame(animationFrameId);
   unbindPostProcessShortcuts();
   unbindDebugShortcut();
+  parameterPanel?.dispose();
   renderer.dispose();
 }
 
