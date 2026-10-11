@@ -26,7 +26,6 @@ export class ParameterPanel {
     this.root.className = "parameter-panel";
     this.root.setAttribute("aria-label", "Effect inspector");
     this.root.addEventListener("keydown", (event) => event.stopPropagation());
-    this.root.addEventListener("scroll", this.positionParameterPanel);
 
     this.parameterRoot = document.createElement("section");
     this.parameterRoot.className = "parameter-panel-parameters";
@@ -41,7 +40,6 @@ export class ParameterPanel {
 
     document.body.append(this.root, this.parameterRoot, this.toggle);
     window.addEventListener("keydown", this.handleWindowKeyDown);
-    window.addEventListener("resize", this.positionParameterPanel);
     this.updateVisibility();
   }
 
@@ -62,13 +60,10 @@ export class ParameterPanel {
     this.renderParameterSection(snapshot);
     this.updateVisibility();
     this.ensureSelectionVisible();
-    this.positionParameterPanel();
   }
 
   dispose() {
     window.removeEventListener("keydown", this.handleWindowKeyDown);
-    window.removeEventListener("resize", this.positionParameterPanel);
-    this.root.removeEventListener("scroll", this.positionParameterPanel);
     this.toggle.removeEventListener("click", this.toggleOpen);
     this.root.remove();
     this.parameterRoot.remove();
@@ -223,19 +218,6 @@ export class ParameterPanel {
     );
   }
 
-  private positionParameterPanel = () => {
-    if (!this.open || !this.hasParameters || !this.selectedPassButton) return;
-
-    const row = this.selectedPassButton.getBoundingClientRect();
-    const panelHeight = this.parameterRoot.offsetHeight;
-    const margin = 16;
-    const top = Math.min(
-      row.top,
-      Math.max(margin, window.innerHeight - panelHeight - margin),
-    );
-
-    this.parameterRoot.style.top = `${Math.max(margin, top)}px`;
-  };
 }
 
 function configureNumberInput(

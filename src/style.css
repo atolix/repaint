@@ -141,6 +141,7 @@ input {
 
 .parameter-panel-parameters {
   position: fixed;
+  top: 16px;
   right: 344px;
   z-index: 11;
   width: 280px;
@@ -231,7 +232,7 @@ input {
 
 @media (max-width: 720px) {
   .parameter-panel-parameters {
-    top: auto !important;
+    top: auto;
     right: 8px;
     bottom: 52px;
     left: 8px;
