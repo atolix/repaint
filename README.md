@@ -193,7 +193,8 @@ previous render state is preserved where possible.
 │       ├── effects/
 │       └── lib/
 ├── test/
-│   └── include-resolver.test.ts
+│   ├── include-resolver.test.ts
+│   └── webgl-resources.test.ts
 ├── vite.config.ts
 ├── tsconfig.json
 ├── package.json
@@ -256,6 +257,7 @@ previous render state is preserved where possible.
 | `package.json` | npm scripts and development dependencies |
 | `package-lock.json` | Locked npm dependency tree |
 | `test/include-resolver.test.ts` | Unit tests for include resolution and dependency graphs |
+| `test/webgl-resources.test.ts` | Unit tests for WebGL allocation failure and cleanup paths |
 
 ## Notes
 
