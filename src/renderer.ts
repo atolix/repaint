@@ -4,9 +4,12 @@ import { ScenePass } from "./pipeline/scene";
 import { logResolution } from "./pipeline/log";
 import { bindPostProcessShortcuts } from "./pipeline/post-process/controls";
 
+const maxRenderDevicePixelRatio = 2;
+
 export class Renderer {
   private gl: WebGL2RenderingContext;
   private canvas: HTMLCanvasElement;
+  private maxTextureSize: number;
 
   private scenePass: ScenePass;
   private postProcessPipeline: PostProcessPipeline;
@@ -23,6 +26,7 @@ export class Renderer {
 
     this.gl = gl;
     this.canvas = canvas;
+    this.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE) as number;
 
     this.scenePass = new ScenePass(gl, sceneSource);
     this.postProcessPipeline = new PostProcessPipeline(gl, postPasses);
@@ -39,10 +43,18 @@ export class Renderer {
     return this.postProcessPipeline.updatePasses(postPasses);
   }
 
-  resize(): [number, number] {
-    const dpr = window.devicePixelRatio || 1;
-    const width = Math.floor(this.canvas.clientWidth * dpr);
-    const height = Math.floor(this.canvas.clientHeight * dpr);
+  resize(): [number, number] | null {
+    const clientWidth = this.canvas.clientWidth;
+    const clientHeight = this.canvas.clientHeight;
+    const requestedDpr = window.devicePixelRatio || 1;
+    const dpr = Math.min(
+      requestedDpr,
+      maxRenderDevicePixelRatio,
+      clientWidth > 0 ? this.maxTextureSize / clientWidth : requestedDpr,
+      clientHeight > 0 ? this.maxTextureSize / clientHeight : requestedDpr,
+    );
+    const width = Math.floor(clientWidth * dpr);
+    const height = Math.floor(clientHeight * dpr);
 
     if (this.canvas.width !== width || this.canvas.height !== height) {
       this.canvas.width = width;
@@ -52,11 +64,13 @@ export class Renderer {
       logResolution({ width, height, dpr });
     }
 
-    return [width, height];
+    return width > 0 && height > 0 ? [width, height] : null;
   }
 
   render(time: number) {
     const resolution = this.resize();
+    if (!resolution) return;
+
     const t = time * 0.001;
     const debugMode = this.debugState.mode;
     const sceneTexture = this.scenePass.render({

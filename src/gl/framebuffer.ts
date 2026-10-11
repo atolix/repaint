@@ -27,9 +27,6 @@ export class Framebuffer {
   resize(width: number, height: number) {
     if (this.width === width && this.height === height) return;
 
-    this.width = width;
-    this.height = height;
-
     const gl = this.gl;
 
     gl.bindTexture(gl.TEXTURE_2D, this.texture);
@@ -44,8 +41,17 @@ export class Framebuffer {
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
 
+    const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     gl.bindTexture(gl.TEXTURE_2D, null);
+
+    if (status !== gl.FRAMEBUFFER_COMPLETE) {
+      throw new Error(`framebuffer incomplete: 0x${status.toString(16)}`);
+    }
+
+    this.width = width;
+    this.height = height;
   }
 
   bind() {
