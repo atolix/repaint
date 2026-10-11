@@ -91,7 +91,8 @@ Use these keys while the browser page is focused.
 | `1` - `9` | Quick select post-process pass 1-9 |
 | `Shift` + `1` - `9` | Quick toggle post-process pass 1-9 |
 | `d` | Cycle debug mode from `0` to `3` |
-| `p` | Show or hide the effect inspector |
+| `p` | Show the effect inspector |
+| `q` | Hide the effect inspector |
 
 Post-process pass numbers follow the order in
 `src/pipeline/post-process/config.ts`. The selection cursor wraps when moving

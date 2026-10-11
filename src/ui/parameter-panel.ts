@@ -79,7 +79,7 @@ export class ParameterPanel {
     const title = document.createElement("h1");
     const hint = document.createElement("span");
     title.textContent = "Effects";
-    hint.textContent = "P to hide";
+    hint.textContent = "Q to close";
     header.append(title, hint);
     return header;
   }
@@ -194,10 +194,12 @@ export class ParameterPanel {
   };
 
   private handleWindowKeyDown = (event: KeyboardEvent) => {
-    if (event.repeat || event.code !== "KeyP") return;
+    const command = getParameterPanelCommand(event);
+    if (!command) return;
 
     event.preventDefault();
-    this.toggleOpen();
+    if (command === "open" && !this.open) this.toggleOpen();
+    if (command === "close" && this.open) this.toggleOpen();
   };
 
   private updateVisibility() {
@@ -247,4 +249,13 @@ function createStructureSignature(snapshot: PostProcessSnapshot) {
 
 function parameterId(passName: string, key: string) {
   return `${passName}\0${key}`;
+}
+
+export function getParameterPanelCommand(
+  event: Pick<KeyboardEvent, "code" | "repeat">,
+) {
+  if (event.repeat) return null;
+  if (event.code === "KeyP") return "open" as const;
+  if (event.code === "KeyQ") return "close" as const;
+  return null;
 }
