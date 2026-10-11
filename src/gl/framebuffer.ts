@@ -9,11 +9,15 @@ export class Framebuffer {
 
   constructor(gl: WebGL2RenderingContext) {
     const framebuffer = gl.createFramebuffer();
-    const texture = gl.createTexture();
 
     if (!framebuffer) throw new Error("failed to create framebuffer");
 
-    if (!texture) throw new Error("failed to create texture");
+    const texture = gl.createTexture();
+
+    if (!texture) {
+      gl.deleteFramebuffer(framebuffer);
+      throw new Error("failed to create texture");
+    }
 
     this.gl = gl;
     this.framebuffer = framebuffer;

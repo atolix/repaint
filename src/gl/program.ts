@@ -29,29 +29,27 @@ export function createProgram(
 
   if (!program) throw new Error("failed to create program");
 
-  const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexSource);
-  const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
+  let vertexShader: WebGLShader | null = null;
+  let fragmentShader: WebGLShader | null = null;
 
-  gl.attachShader(program, vertexShader);
-  gl.attachShader(program, fragmentShader);
-  gl.linkProgram(program);
+  try {
+    vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexSource);
+    fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentSource);
 
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    const log = gl.getProgramInfoLog(program);
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+    gl.linkProgram(program);
 
-    gl.detachShader(program, vertexShader);
-    gl.detachShader(program, fragmentShader);
-    gl.deleteShader(vertexShader);
-    gl.deleteShader(fragmentShader);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      throw new Error(gl.getProgramInfoLog(program) ?? "program link error");
+    }
+
+    return program;
+  } catch (error) {
     gl.deleteProgram(program);
-
-    throw new Error(log ?? "program link error");
+    throw error;
+  } finally {
+    if (vertexShader) gl.deleteShader(vertexShader);
+    if (fragmentShader) gl.deleteShader(fragmentShader);
   }
-
-  gl.detachShader(program, vertexShader);
-  gl.detachShader(program, fragmentShader);
-  gl.deleteShader(vertexShader);
-  gl.deleteShader(fragmentShader);
-
-  return program;
 }
