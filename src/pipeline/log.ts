@@ -5,7 +5,7 @@ import {
   type TextureSource,
 } from "./post-process/plan";
 import type { PostProcessSnapshot } from "./post-process/types";
-import type { ResolutionState } from "../renderer";
+import type { ResolutionState } from "../renderer/size";
 
 type PipelineLogPass = {
   name: string;

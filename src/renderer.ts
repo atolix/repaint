@@ -3,14 +3,12 @@ import type { PostProcessSnapshot } from "./pipeline/post-process/types";
 import { DebugState } from "./debug/state";
 import { ScenePass } from "./pipeline/scene";
 import { bindPostProcessShortcuts } from "./pipeline/post-process/controls";
+import {
+  calculateRenderSize,
+  type ResolutionState,
+} from "./renderer/size";
 
 const maxRenderDevicePixelRatio = 2;
-
-export type ResolutionState = {
-  width: number;
-  height: number;
-  dpr: number;
-};
 
 export type RendererCallbacks = {
   onPostProcessStateChange: (snapshot: PostProcessSnapshot) => void;
@@ -98,17 +96,13 @@ export class Renderer {
   }
 
   resize(): [number, number] | null {
-    const clientWidth = this.canvas.clientWidth;
-    const clientHeight = this.canvas.clientHeight;
-    const requestedDpr = window.devicePixelRatio || 1;
-    const dpr = Math.min(
-      requestedDpr,
-      maxRenderDevicePixelRatio,
-      clientWidth > 0 ? this.maxTextureSize / clientWidth : requestedDpr,
-      clientHeight > 0 ? this.maxTextureSize / clientHeight : requestedDpr,
-    );
-    const width = Math.floor(clientWidth * dpr);
-    const height = Math.floor(clientHeight * dpr);
+    const { width, height, dpr } = calculateRenderSize({
+      clientWidth: this.canvas.clientWidth,
+      clientHeight: this.canvas.clientHeight,
+      devicePixelRatio: window.devicePixelRatio,
+      maxDevicePixelRatio: maxRenderDevicePixelRatio,
+      maxTextureSize: this.maxTextureSize,
+    });
 
     if (this.canvas.width !== width || this.canvas.height !== height) {
       this.canvas.width = width;
