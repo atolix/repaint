@@ -17,6 +17,28 @@ input {
   font: inherit;
 }
 
+.debug-indicator {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 10;
+  border: 1px solid rgb(121 183 193 / 45%);
+  border-radius: 7px;
+  padding: 7px 10px;
+  color: #d9f1f5;
+  background: rgb(8 15 14 / 88%);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 28%);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  backdrop-filter: blur(12px);
+}
+
+.debug-indicator[hidden] {
+  display: none;
+}
+
 .parameter-panel,
 .parameter-panel-parameters,
 .parameter-panel-toggle {
@@ -189,6 +211,11 @@ input {
 }
 
 @media (max-width: 540px) {
+  .debug-indicator {
+    top: 8px;
+    left: 8px;
+  }
+
   .parameter-panel {
     top: 8px;
     right: 8px;

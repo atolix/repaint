@@ -13,6 +13,7 @@ import { bindPostProcessShortcuts } from "./pipeline/post-process/controls";
 import { bindDebugShortcut } from "./debug/controls";
 import { DebugState } from "./debug/state";
 import { ParameterPanel } from "./ui/parameter-panel";
+import { DebugIndicator } from "./ui/debug-indicator";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#canvas");
 if (!canvas) throw new Error("canvas element not found");
@@ -23,6 +24,10 @@ const resolvedOutputSource = resolveIncludes(
   "./shaders/output.frag",
 );
 const debugState = new DebugState();
+const debugIndicator = new DebugIndicator();
+const unsubscribeDebugIndicator = debugState.subscribe((mode) => {
+  debugIndicator.render(mode);
+});
 let parameterPanel: ParameterPanel | null = null;
 const renderer = new Renderer(
   canvas,
@@ -129,6 +134,8 @@ function dispose() {
   cancelAnimationFrame(animationFrameId);
   unbindPostProcessShortcuts();
   unbindDebugShortcut();
+  unsubscribeDebugIndicator();
+  debugIndicator.dispose();
   parameterPanel?.dispose();
   renderer.dispose();
 }

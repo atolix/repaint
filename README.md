@@ -191,6 +191,10 @@ Parameter definitions live beside effect registration in
 `src/pipeline/post-process/config.ts`. Values are clamped by the state layer,
 preserved across compatible HMR updates, and passed to shaders as uniforms.
 
+When debug mode 1–3 is active, a label in the top-left corner identifies the
+current visualization: UV coordinates, radial distance, or UV grid. The label
+is hidden in normal mode 0.
+
 To add an effect, create a fragment shader in `src/shaders/effects/`, then add
 it to `postProcessDefinitions` in `src/pipeline/post-process/config.ts`.
 
@@ -282,6 +286,7 @@ events and output, while `src/dev-dashboard/dashboard.ts` is a pure formatter.
 │   ├── pass/
 │   │   └── draw.ts
 │   ├── ui/
+│   │   ├── debug-indicator.ts
 │   │   └── parameter-panel.ts
 │   ├── pipeline/
 │   │   ├── log.ts
@@ -325,6 +330,7 @@ events and output, while `src/dev-dashboard/dashboard.ts` is a pure formatter.
 | `src/debug/controls.ts` | Browser keyboard adapter for debug-mode changes |
 | `src/debug/state.ts` | Pure debug-mode state |
 | `src/ui/parameter-panel.ts` | Collapsible DOM inspector for pass selection, toggles, and numeric parameters |
+| `src/ui/debug-indicator.ts` | Top-left label for the active shader debug visualization |
 | `src/style.css` | Fullscreen black canvas layout |
 
 ### WebGL Infrastructure
