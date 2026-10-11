@@ -3,6 +3,7 @@
 precision highp float;
 
 uniform sampler2D u_scene;
+uniform float u_contrast;
 
 #include "../lib/uniforms.glsl"
 #include "../lib/util.glsl"
@@ -15,5 +16,5 @@ void main() {
   vec2 uv = getScreenUV();
   vec3 color = texture(u_scene, uv).rgb;
 
-  outColor = vec4(saturate(contrast(color, 1.42)), 1.0);
+  outColor = vec4(saturate(contrast(color, u_contrast)), 1.0);
 }

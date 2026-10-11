@@ -3,6 +3,8 @@
 precision highp float;
 
 uniform sampler2D u_scene;
+uniform float u_threshold;
+uniform float u_mix;
 
 #include "../lib/uniforms.glsl"
 #include "../lib/util.glsl"
@@ -28,10 +30,10 @@ void main() {
 
   float gx = -tl - 2.0 * l - bl + tr + 2.0 * r + br;
   float gy = -bl - 2.0 * b - br + tl + 2.0 * t + tr;
-  float edge = smoothstep(0.08, 0.34, length(vec2(gx, gy)));
+  float edge = smoothstep(u_threshold, u_threshold + 0.26, length(vec2(gx, gy)));
   vec3 color = texture(u_scene, uv).rgb;
 
-  color = mix(color * 0.45, vec3(edge), 0.72);
+  color = mix(color * 0.45, vec3(edge), u_mix);
 
   outColor = vec4(saturate(color), 1.0);
 }

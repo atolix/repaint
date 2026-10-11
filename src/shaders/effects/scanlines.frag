@@ -3,6 +3,8 @@
 precision highp float;
 
 uniform sampler2D u_scene;
+uniform float u_intensity;
+uniform float u_frequency;
 
 #include "../lib/uniforms.glsl"
 #include "../lib/util.glsl"
@@ -13,8 +15,8 @@ out vec4 outColor;
 void main() {
   vec2 uv = gl_FragCoord.xy / u_resolution;
   vec3 color = texture(u_scene, uv).rgb;
-  float line = sin(gl_FragCoord.y * 3.14159265);
-  float mask = mix(0.82, 1.0, smoothstep(-0.2, 0.8, line));
+  float line = sin(gl_FragCoord.y * u_frequency);
+  float mask = mix(1.0 - u_intensity, 1.0, smoothstep(-0.2, 0.8, line));
 
   color *= mask;
 

@@ -3,6 +3,7 @@
 precision highp float;
 
 uniform sampler2D u_scene;
+uniform float u_amount;
 
 #include "../lib/uniforms.glsl"
 #include "../lib/util.glsl"
@@ -19,7 +20,7 @@ void main() {
     dot(color, vec3(0.272, 0.534, 0.131))
   );
 
-  color = mix(color, saturate(sepia), 0.82);
+  color = mix(color, saturate(sepia), u_amount);
 
   outColor = vec4(color, 1.0);
 }

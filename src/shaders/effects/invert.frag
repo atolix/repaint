@@ -3,6 +3,7 @@
 precision highp float;
 
 uniform sampler2D u_scene;
+uniform float u_amount;
 
 #include "../lib/uniforms.glsl"
 #include "../lib/util.glsl"
@@ -13,6 +14,6 @@ out vec4 outColor;
 void main() {
   vec2 uv = gl_FragCoord.xy / u_resolution;
   vec3 color = texture(u_scene, uv).rgb;
-  color = 1.0 - color;
+  color = mix(color, 1.0 - color, u_amount);
   outColor = vec4(color, 1.0);
 }

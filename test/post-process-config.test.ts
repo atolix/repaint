@@ -8,4 +8,10 @@ describe("post-process config", () => {
     expect(passes).toHaveLength(19);
     expect(passes.every((pass) => pass.description.trim().length > 0)).toBe(true);
   });
+
+  it("exposes adjustable parameters for every registered effect", () => {
+    const passes = createPostProcessPasses((source) => source);
+
+    expect(passes.every((pass) => (pass.parameters?.length ?? 0) > 0)).toBe(true);
+  });
 });

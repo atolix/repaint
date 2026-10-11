@@ -3,6 +3,7 @@
 precision highp float;
 
 uniform sampler2D u_scene;
+uniform float u_threshold;
 
 #include "../lib/uniforms.glsl"
 #include "../lib/util.glsl"
@@ -14,7 +15,7 @@ out vec4 outColor;
 void main() {
   vec2 uv = getScreenUV();
   vec3 color = texture(u_scene, uv).rgb;
-  float mask = step(0.5, luminance(color));
+  float mask = step(u_threshold, luminance(color));
 
   outColor = vec4(vec3(mask), 1.0);
 }

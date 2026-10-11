@@ -29,6 +29,17 @@ const postProcessDefinitions = [
     source: invertSource,
     path: "./shaders/effects/invert.frag",
     enabled: false,
+    parameters: [
+      {
+        key: "amount",
+        label: "Amount",
+        uniform: "u_amount",
+        min: 0,
+        max: 1,
+        step: 0.01,
+        defaultValue: 1,
+      },
+    ],
   },
   {
     name: "noise",
@@ -117,6 +128,26 @@ const postProcessDefinitions = [
     source: scanlinesSource,
     path: "./shaders/effects/scanlines.frag",
     enabled: false,
+    parameters: [
+      {
+        key: "intensity",
+        label: "Intensity",
+        uniform: "u_intensity",
+        min: 0,
+        max: 0.8,
+        step: 0.01,
+        defaultValue: 0.18,
+      },
+      {
+        key: "frequency",
+        label: "Frequency",
+        uniform: "u_frequency",
+        min: 0.2,
+        max: 8,
+        step: 0.1,
+        defaultValue: 3.1416,
+      },
+    ],
   },
   {
     name: "posterize",
@@ -124,6 +155,17 @@ const postProcessDefinitions = [
     source: posterizeSource,
     path: "./shaders/effects/posterize.frag",
     enabled: false,
+    parameters: [
+      {
+        key: "levels",
+        label: "Levels",
+        uniform: "u_levels",
+        min: 2,
+        max: 16,
+        step: 1,
+        defaultValue: 5,
+      },
+    ],
   },
   {
     name: "sepia",
@@ -131,6 +173,17 @@ const postProcessDefinitions = [
     source: sepiaSource,
     path: "./shaders/effects/sepia.frag",
     enabled: false,
+    parameters: [
+      {
+        key: "amount",
+        label: "Amount",
+        uniform: "u_amount",
+        min: 0,
+        max: 1,
+        step: 0.01,
+        defaultValue: 0.82,
+      },
+    ],
   },
   {
     name: "edge-detect",
@@ -138,6 +191,26 @@ const postProcessDefinitions = [
     source: edgeDetectSource,
     path: "./shaders/effects/edge-detect.frag",
     enabled: false,
+    parameters: [
+      {
+        key: "threshold",
+        label: "Threshold",
+        uniform: "u_threshold",
+        min: 0,
+        max: 0.5,
+        step: 0.01,
+        defaultValue: 0.08,
+      },
+      {
+        key: "mix",
+        label: "Mix",
+        uniform: "u_mix",
+        min: 0,
+        max: 1,
+        step: 0.01,
+        defaultValue: 0.72,
+      },
+    ],
   },
   {
     name: "grayscale",
@@ -145,6 +218,17 @@ const postProcessDefinitions = [
     source: grayscaleSource,
     path: "./shaders/effects/grayscale.frag",
     enabled: false,
+    parameters: [
+      {
+        key: "amount",
+        label: "Amount",
+        uniform: "u_amount",
+        min: 0,
+        max: 1,
+        step: 0.01,
+        defaultValue: 1,
+      },
+    ],
   },
   {
     name: "threshold",
@@ -152,6 +236,17 @@ const postProcessDefinitions = [
     source: thresholdSource,
     path: "./shaders/effects/threshold.frag",
     enabled: false,
+    parameters: [
+      {
+        key: "threshold",
+        label: "Threshold",
+        uniform: "u_threshold",
+        min: 0,
+        max: 1,
+        step: 0.01,
+        defaultValue: 0.5,
+      },
+    ],
   },
   {
     name: "glitch",
@@ -159,6 +254,35 @@ const postProcessDefinitions = [
     source: glitchSource,
     path: "./shaders/effects/glitch.frag",
     enabled: false,
+    parameters: [
+      {
+        key: "strength",
+        label: "Strength",
+        uniform: "u_strength",
+        min: 0,
+        max: 2,
+        step: 0.01,
+        defaultValue: 1,
+      },
+      {
+        key: "speed",
+        label: "Speed",
+        uniform: "u_speed",
+        min: 0,
+        max: 20,
+        step: 0.1,
+        defaultValue: 8,
+      },
+      {
+        key: "bands",
+        label: "Bands",
+        uniform: "u_bands",
+        min: 4,
+        max: 80,
+        step: 1,
+        defaultValue: 36,
+      },
+    ],
   },
   {
     name: "barrel-distortion",
@@ -166,6 +290,17 @@ const postProcessDefinitions = [
     source: barrelDistortionSource,
     path: "./shaders/effects/barrel-distortion.frag",
     enabled: false,
+    parameters: [
+      {
+        key: "strength",
+        label: "Strength",
+        uniform: "u_strength",
+        min: -0.5,
+        max: 1,
+        step: 0.01,
+        defaultValue: 0.42,
+      },
+    ],
   },
   {
     name: "wave-distortion",
@@ -173,6 +308,35 @@ const postProcessDefinitions = [
     source: waveDistortionSource,
     path: "./shaders/effects/wave-distortion.frag",
     enabled: false,
+    parameters: [
+      {
+        key: "amplitude",
+        label: "Amplitude",
+        uniform: "u_amplitude",
+        min: 0,
+        max: 0.05,
+        step: 0.001,
+        defaultValue: 0.012,
+      },
+      {
+        key: "frequency",
+        label: "Frequency",
+        uniform: "u_frequency",
+        min: 0.1,
+        max: 3,
+        step: 0.1,
+        defaultValue: 1,
+      },
+      {
+        key: "speed",
+        label: "Speed",
+        uniform: "u_speed",
+        min: 0,
+        max: 3,
+        step: 0.1,
+        defaultValue: 1,
+      },
+    ],
   },
   {
     name: "contrast",
@@ -180,6 +344,17 @@ const postProcessDefinitions = [
     source: contrastSource,
     path: "./shaders/effects/contrast.frag",
     enabled: false,
+    parameters: [
+      {
+        key: "contrast",
+        label: "Contrast",
+        uniform: "u_contrast",
+        min: 0.2,
+        max: 3,
+        step: 0.01,
+        defaultValue: 1.42,
+      },
+    ],
   },
   {
     name: "duotone",
@@ -187,6 +362,17 @@ const postProcessDefinitions = [
     source: duotoneSource,
     path: "./shaders/effects/duotone.frag",
     enabled: false,
+    parameters: [
+      {
+        key: "amount",
+        label: "Amount",
+        uniform: "u_amount",
+        min: 0,
+        max: 1,
+        step: 0.01,
+        defaultValue: 1,
+      },
+    ],
   },
   {
     name: "swirl",
@@ -194,6 +380,26 @@ const postProcessDefinitions = [
     source: swirlSource,
     path: "./shaders/effects/swirl.frag",
     enabled: false,
+    parameters: [
+      {
+        key: "angle",
+        label: "Angle",
+        uniform: "u_angle",
+        min: -6.28,
+        max: 6.28,
+        step: 0.01,
+        defaultValue: 2.4,
+      },
+      {
+        key: "radius",
+        label: "Radius",
+        uniform: "u_radius",
+        min: 0.1,
+        max: 1.5,
+        step: 0.01,
+        defaultValue: 0.72,
+      },
+    ],
   },
   {
     name: "mirror",
@@ -201,6 +407,17 @@ const postProcessDefinitions = [
     source: mirrorSource,
     path: "./shaders/effects/mirror.frag",
     enabled: false,
+    parameters: [
+      {
+        key: "amount",
+        label: "Amount",
+        uniform: "u_amount",
+        min: 0,
+        max: 1,
+        step: 0.01,
+        defaultValue: 1,
+      },
+    ],
   },
   {
     name: "emboss",
@@ -208,6 +425,26 @@ const postProcessDefinitions = [
     source: embossSource,
     path: "./shaders/effects/emboss.frag",
     enabled: false,
+    parameters: [
+      {
+        key: "strength",
+        label: "Strength",
+        uniform: "u_strength",
+        min: 0,
+        max: 6,
+        step: 0.01,
+        defaultValue: 2.8,
+      },
+      {
+        key: "mix",
+        label: "Color mix",
+        uniform: "u_mix",
+        min: 0,
+        max: 1,
+        step: 0.01,
+        defaultValue: 0.28,
+      },
+    ],
   },
 ] as const;
 
