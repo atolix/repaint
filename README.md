@@ -9,7 +9,7 @@ is reported through the Vite terminal logs.
 
 ## Requirements
 
-- Node.js
+- Node.js `^20.19.0` or `>=22.12.0`
 - npm
 - A browser with WebGL2 support
 
@@ -51,6 +51,12 @@ Preview the production build with:
 
 ```sh
 npm run preview
+```
+
+Run the local unit tests with:
+
+```sh
+npm test
 ```
 
 ## Controls
@@ -115,17 +121,29 @@ includes and include cycles throw errors.
 
 The current effect passes are all disabled by default.
 
-| Key | Effect |
-| --- | --- |
-| `1` | `invert` |
-| `2` | `noise` |
-| `3` | `vignette` |
-| `4` | `chromatic-aberration` |
-| `5` | `pixelate` |
-| `6` | `scanlines` |
-| `7` | `posterize` |
-| `8` | `sepia` |
-| `9` | `edge-detect` |
+| Position | Numeric shortcut | Effect |
+| --- | --- | --- |
+| 1 | `1` | `invert` |
+| 2 | `2` | `noise` |
+| 3 | `3` | `vignette` |
+| 4 | `4` | `chromatic-aberration` |
+| 5 | `5` | `pixelate` |
+| 6 | `6` | `scanlines` |
+| 7 | `7` | `posterize` |
+| 8 | `8` | `sepia` |
+| 9 | `9` | `edge-detect` |
+| 10 | — | `grayscale` |
+| 11 | — | `threshold` |
+| 12 | — | `glitch` |
+| 13 | — | `barrel-distortion` |
+| 14 | — | `wave-distortion` |
+| 15 | — | `contrast` |
+| 16 | — | `duotone` |
+| 17 | — | `swirl` |
+| 18 | — | `mirror` |
+| 19 | — | `emboss` |
+
+Use the arrow or bracket controls to select effects beyond the first nine.
 
 To add an effect, create a fragment shader in `src/shaders/effects/`, then add
 it to `postProcessDefinitions` in `src/pipeline/post-process/config.ts`.
@@ -145,8 +163,6 @@ previous render state is preserved where possible.
 
 ```text
 .
-├── docs/
-│   └── development-memo.md
 ├── index.html
 ├── src/
 │   ├── main.ts
@@ -158,6 +174,7 @@ previous render state is preserved where possible.
 │   ├── gl/
 │   │   ├── framebuffer.ts
 │   │   ├── include.ts
+│   │   ├── include-resolver.ts
 │   │   └── program.ts
 │   ├── pass/
 │   │   └── draw.ts
@@ -175,6 +192,8 @@ previous render state is preserved where possible.
 │       ├── output.frag
 │       ├── effects/
 │       └── lib/
+├── test/
+│   └── include-resolver.test.ts
 ├── vite.config.ts
 ├── tsconfig.json
 ├── package.json
@@ -198,6 +217,7 @@ previous render state is preserved where possible.
 | `src/gl/program.ts` | Compiles shaders, links programs, reports compile/link errors, and releases temporary shader objects |
 | `src/gl/framebuffer.ts` | Manages framebuffer-backed textures and resizes render targets |
 | `src/gl/include.ts` | Resolves GLSL include directives from eagerly imported shader modules and reports dependency graphs |
+| `src/gl/include-resolver.ts` | Pure include-resolution and include-graph logic used by the runtime and unit tests |
 | `src/pass/draw.ts` | Shared fullscreen draw helper for binding framebuffers, uniforms, textures, and issuing `drawArrays` |
 
 ### Render Pipeline
@@ -235,11 +255,12 @@ previous render state is preserved where possible.
 | `tsconfig.json` | TypeScript compiler configuration |
 | `package.json` | npm scripts and development dependencies |
 | `package-lock.json` | Locked npm dependency tree |
-| `docs/development-memo.md` | Project direction notes and future work ideas |
+| `test/include-resolver.test.ts` | Unit tests for include resolution and dependency graphs |
 
 ## Notes
 
 - This project is structured as a shader workbench.
 - There is no in-browser control panel; effects and initial state are managed in
   source code.
-- Canvas render resolution is derived from CSS size and `devicePixelRatio`.
+- Canvas render resolution is derived from CSS size and `devicePixelRatio`, with
+  DPR capped at `2` and dimensions limited by the GPU maximum texture size.
