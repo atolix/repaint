@@ -46,7 +46,7 @@ export function getPostProcessCommand(
   if (event.key === "Home") return { type: "select-first" };
   if (event.key === "End") return { type: "select-last" };
 
-  if (event.key === " " || event.key === "Enter") {
+  if (event.key === "Enter") {
     return { type: "toggle-selected" };
   }
 

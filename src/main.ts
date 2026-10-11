@@ -15,6 +15,7 @@ import { DebugState } from "./debug/state";
 import { ParameterPanel } from "./ui/parameter-panel";
 import { DebugIndicator } from "./ui/debug-indicator";
 import { PlaybackClock } from "./time/playback-clock";
+import { bindPlaybackShortcut } from "./time/controls";
 import { PlaybackControls } from "./ui/playback-controls";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#canvas");
@@ -56,6 +57,7 @@ const unbindPostProcessShortcuts = bindPostProcessShortcuts(
   () => renderer.postProcessControls,
 );
 const unbindDebugShortcut = bindDebugShortcut(debugState);
+const unbindPlaybackShortcut = bindPlaybackShortcut(playbackClock);
 logShaderCompiled("./shaders/main.frag");
 logIncludeGraph(createIncludeGraph());
 
@@ -138,6 +140,7 @@ function dispose() {
   cancelAnimationFrame(animationFrameId);
   unbindPostProcessShortcuts();
   unbindDebugShortcut();
+  unbindPlaybackShortcut();
   unsubscribeDebugIndicator();
   debugIndicator.dispose();
   parameterPanel?.dispose();

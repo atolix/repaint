@@ -21,7 +21,6 @@ describe("getPostProcessCommand", () => {
     ["[", "select-previous"],
     ["Home", "select-first"],
     ["End", "select-last"],
-    [" ", "toggle-selected"],
     ["Enter", "toggle-selected"],
   ])("maps %s to %s", (key, type) => {
     expect(getPostProcessCommand(event({ key }))).toEqual({ type });
@@ -53,5 +52,6 @@ describe("getPostProcessCommand", () => {
       getPostProcessCommand(event({ key: "ArrowDown", repeat: true })),
     ).toBeNull();
     expect(getPostProcessCommand(event({ key: "x", code: "KeyX" }))).toBeNull();
+    expect(getPostProcessCommand(event({ key: " ", code: "Space" }))).toBeNull();
   });
 });
