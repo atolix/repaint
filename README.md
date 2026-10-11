@@ -5,8 +5,8 @@ A Vite + TypeScript + WebGL2 shader playground.
 `repaint` renders the scene shader in `src/shaders/main.frag` to a fullscreen
 canvas, then optionally routes that image through a configurable post-process
 pipeline. The browser UI keeps the canvas full-screen and overlays a collapsible
-effect inspector. Development diagnostics are also reported through the Vite
-terminal logs.
+effect inspector and playback controls. Development diagnostics are also
+reported through the Vite terminal logs.
 
 ## Requirements
 
@@ -143,54 +143,54 @@ includes and include cycles throw errors.
 
 The current effect passes are all disabled by default.
 
-| Position | Numeric shortcut | Effect |
-| --- | --- | --- |
-| 1 | `1` | `invert` |
-| 2 | `2` | `noise` |
-| 3 | `3` | `vignette` |
-| 4 | `4` | `chromatic-aberration` |
-| 5 | `5` | `pixelate` |
-| 6 | `6` | `scanlines` |
-| 7 | `7` | `posterize` |
-| 8 | `8` | `sepia` |
-| 9 | `9` | `edge-detect` |
-| 10 | — | `grayscale` |
-| 11 | — | `threshold` |
-| 12 | — | `glitch` |
-| 13 | — | `barrel-distortion` |
-| 14 | — | `wave-distortion` |
-| 15 | — | `contrast` |
-| 16 | — | `duotone` |
-| 17 | — | `swirl` |
-| 18 | — | `mirror` |
-| 19 | — | `emboss` |
+| Position | Numeric shortcut | Effect | Parameters |
+| --- | --- | --- | --- |
+| 1 | `1` | `invert` | Amount |
+| 2 | `2` | `noise` | Amount |
+| 3 | `3` | `vignette` | Radius, softness |
+| 4 | `4` | `chromatic-aberration` | Amount |
+| 5 | `5` | `pixelate` | Pixel size |
+| 6 | `6` | `scanlines` | Intensity, frequency |
+| 7 | `7` | `posterize` | Levels |
+| 8 | `8` | `sepia` | Amount |
+| 9 | `9` | `edge-detect` | Threshold, mix |
+| 10 | — | `grayscale` | Amount |
+| 11 | — | `threshold` | Threshold |
+| 12 | — | `glitch` | Strength, speed, bands |
+| 13 | — | `barrel-distortion` | Strength |
+| 14 | — | `wave-distortion` | Amplitude, frequency, speed |
+| 15 | — | `contrast` | Contrast |
+| 16 | — | `duotone` | Amount |
+| 17 | — | `swirl` | Angle, radius |
+| 18 | — | `mirror` | Amount |
+| 19 | — | `emboss` | Strength, color mix |
 
 Use the arrow or bracket controls to select effects beyond the first nine.
 
 ## Effect Inspector
 
-The inspector is overlaid on the right side of the canvas and can be collapsed
-with `p` or its bottom-right button. Parameters for the selected effect open in
-a top-aligned flyout to the left of the pass list, so moving the selection does
-not move the controls vertically. It provides:
+The inspector is overlaid on the right side of the canvas. Press `p` to show it,
+press `q` to hide it, or use its bottom-right button. Parameters for the selected
+effect open in a top-aligned flyout to the left of the pass list, so moving the
+selection does not move the controls vertically. It provides:
 
 - selection and ON/OFF controls for every post-process pass
-- a description of the selected effect, including effects without parameters
+- a description of the selected effect
 - sliders and numeric inputs for the selected pass
 - per-pass parameter reset
-
-The first parameterized effects are:
-
-| Effect | Parameters |
-| --- | --- |
-| `noise` | Amount |
-| `vignette` | Radius, softness |
-| `chromatic-aberration` | Amount |
-| `pixelate` | Pixel size |
 
 Parameter definitions live beside effect registration in
 `src/pipeline/post-process/config.ts`. Values are clamped by the state layer,
 preserved across compatible HMR updates, and passed to shaders as uniforms.
+
+## Playback Controls
+
+The bottom-left controls operate on shader time without stopping the render
+loop. They provide pause/resume, reset to zero, one 60 fps frame step while
+paused, and `0.25×`, `0.5×`, `1×`, or `2×` playback speed. Keeping the render
+loop active while paused lets UI and WebGL context events continue normally.
+
+## Debug Indicator
 
 When debug mode 1–3 is active, a label in the top-left corner identifies the
 current visualization: UV coordinates, radial distance, or UV grid. The label
@@ -224,7 +224,9 @@ raw shader assets.
 src/main.ts (composition root)
 ├── shader assets + include resolution
 ├── input bindings, HMR, and diagnostic adapters
-├── ParameterPanel                       (DOM adapter)
+├── ParameterPanel + DebugIndicator      (DOM adapters)
+├── PlaybackControls                     (DOM adapter)
+│   └── PlaybackClock                    (pure time state)
 └── Renderer
     ├── render size calculation
     └── RenderResources
@@ -243,6 +245,11 @@ vite.config.ts
 knows how shader assets, browser input, HMR events, renderer callbacks, and the
 animation loop are connected. Diagnostics are injected into `Renderer` as
 callbacks, and controls depend on the narrow `PostProcessControls` interface.
+
+`PlaybackClock` converts monotonic animation-frame timestamps into shader time
+and owns pause, reset, stepping, and speed changes. `PlaybackControls` only
+translates DOM events into clock operations. `Renderer` therefore receives an
+already calculated time in seconds and has no dependency on playback UI state.
 
 `Renderer` handles browser and context lifecycle concerns. A complete
 `RenderResources` instance can be constructed before replacing the active one,
@@ -286,9 +293,12 @@ events and output, while `src/dev-dashboard/dashboard.ts` is a pure formatter.
 │   │   └── program.ts
 │   ├── pass/
 │   │   └── draw.ts
+│   ├── time/
+│   │   └── playback-clock.ts
 │   ├── ui/
 │   │   ├── debug-indicator.ts
-│   │   └── parameter-panel.ts
+│   │   ├── parameter-panel.ts
+│   │   └── playback-controls.ts
 │   ├── pipeline/
 │   │   ├── log.ts
 │   │   ├── scene/
@@ -332,6 +342,8 @@ events and output, while `src/dev-dashboard/dashboard.ts` is a pure formatter.
 | `src/debug/state.ts` | Pure debug-mode state |
 | `src/ui/parameter-panel.ts` | Collapsible DOM inspector for pass selection, toggles, and numeric parameters |
 | `src/ui/debug-indicator.ts` | Top-left label for the active shader debug visualization |
+| `src/time/playback-clock.ts` | Pure shader-time state for pause, reset, frame stepping, and playback speed |
+| `src/ui/playback-controls.ts` | Bottom-left DOM controls for the playback clock |
 | `src/style.css` | Fullscreen black canvas layout |
 
 ### WebGL Infrastructure
