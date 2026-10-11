@@ -10,6 +10,8 @@ import {
 } from "./pipeline/post-process/config";
 import { logPipeline, logResolution } from "./pipeline/log";
 import { bindPostProcessShortcuts } from "./pipeline/post-process/controls";
+import { bindDebugShortcut } from "./debug/controls";
+import { DebugState } from "./debug/state";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#canvas");
 if (!canvas) throw new Error("canvas element not found");
@@ -19,6 +21,7 @@ const resolvedOutputSource = resolveIncludes(
   outputSource,
   "./shaders/output.frag",
 );
+const debugState = new DebugState();
 const renderer = new Renderer(
   canvas,
   {
@@ -31,10 +34,12 @@ const renderer = new Renderer(
     onPostProcessStateChange: logPipeline,
     onResolutionChange: logResolution,
   },
+  debugState,
 );
 const unbindPostProcessShortcuts = bindPostProcessShortcuts(
   () => renderer.postProcessControls,
 );
+const unbindDebugShortcut = bindDebugShortcut(debugState);
 logShaderCompiled("./shaders/main.frag");
 logIncludeGraph(createIncludeGraph());
 
@@ -117,6 +122,7 @@ function dispose() {
 
   cancelAnimationFrame(animationFrameId);
   unbindPostProcessShortcuts();
+  unbindDebugShortcut();
   renderer.dispose();
 }
 

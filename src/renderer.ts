@@ -1,6 +1,5 @@
 import { PostProcessPipeline, type PostProcessPassConfig } from "./pipeline/post-process";
 import type { PostProcessSnapshot } from "./pipeline/post-process/types";
-import { DebugState } from "./debug/state";
 import { ScenePass } from "./pipeline/scene";
 import type { PostProcessControls } from "./pipeline/post-process/controls";
 import {
@@ -21,6 +20,10 @@ export type RendererShaderSources = {
   output: string;
 };
 
+export type DebugModeState = {
+  readonly mode: number;
+};
+
 export class Renderer {
   private gl: WebGL2RenderingContext;
   private canvas: HTMLCanvasElement;
@@ -28,7 +31,7 @@ export class Renderer {
 
   private scenePass: ScenePass;
   private postProcessPipeline: PostProcessPipeline;
-  private debugState: DebugState;
+  private debugState: DebugModeState;
   private shaderSources: RendererShaderSources;
   private postPasses: PostProcessPassConfig[];
   private callbacks: RendererCallbacks;
@@ -41,6 +44,7 @@ export class Renderer {
     shaderSources: RendererShaderSources,
     postPasses: PostProcessPassConfig[],
     callbacks: RendererCallbacks,
+    debugState: DebugModeState,
   ) {
     const gl = canvas.getContext("webgl2");
 
@@ -64,7 +68,7 @@ export class Renderer {
       postPasses,
       callbacks.onPostProcessStateChange,
     );
-    this.debugState = new DebugState();
+    this.debugState = debugState;
 
     this.canvas.addEventListener("webglcontextlost", this.handleContextLost);
     this.canvas.addEventListener("webglcontextrestored", this.handleContextRestored);
@@ -143,7 +147,6 @@ export class Renderer {
 
     this.canvas.removeEventListener("webglcontextlost", this.handleContextLost);
     this.canvas.removeEventListener("webglcontextrestored", this.handleContextRestored);
-    this.debugState.dispose();
     this.scenePass.dispose();
     this.postProcessPipeline.dispose();
   }
