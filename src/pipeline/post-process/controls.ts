@@ -8,6 +8,12 @@ export type PostProcessControls = {
   selectPassAt(index: number): SelectedPass | null;
   toggleSelectedPass(): ToggledPass | null;
   togglePassAt(index: number): Pick<ToggledPass, "name" | "enabled"> | null;
+  setParameter(
+    passName: string,
+    key: string,
+    value: number,
+  ): { passName: string; key: string; value: number } | null;
+  resetPassParameters(passName: string): boolean;
 };
 
 export type PostProcessCommand =

@@ -34,24 +34,77 @@ const postProcessDefinitions = [
     source: noiseSource,
     path: "./shaders/effects/noise.frag",
     enabled: false,
+    parameters: [
+      {
+        key: "amount",
+        label: "Amount",
+        uniform: "u_amount",
+        min: 0,
+        max: 0.3,
+        step: 0.01,
+        defaultValue: 0.08,
+      },
+    ],
   },
   {
     name: "vignette",
     source: vignetteSource,
     path: "./shaders/effects/vignette.frag",
     enabled: false,
+    parameters: [
+      {
+        key: "radius",
+        label: "Radius",
+        uniform: "u_radius",
+        min: 0.2,
+        max: 1.4,
+        step: 0.01,
+        defaultValue: 0.806,
+      },
+      {
+        key: "softness",
+        label: "Softness",
+        uniform: "u_softness",
+        min: 0.01,
+        max: 0.8,
+        step: 0.01,
+        defaultValue: 0.382,
+      },
+    ],
   },
   {
     name: "chromatic-aberration",
     source: chromaticAberrationSource,
     path: "./shaders/effects/chromatic-aberration.frag",
     enabled: false,
+    parameters: [
+      {
+        key: "amount",
+        label: "Amount",
+        uniform: "u_amount",
+        min: 0,
+        max: 0.05,
+        step: 0.001,
+        defaultValue: 0.012,
+      },
+    ],
   },
   {
     name: "pixelate",
     source: pixelateSource,
     path: "./shaders/effects/pixelate.frag",
     enabled: false,
+    parameters: [
+      {
+        key: "size",
+        label: "Pixel size",
+        uniform: "u_pixelSize",
+        min: 1,
+        max: 64,
+        step: 1,
+        defaultValue: 8,
+      },
+    ],
   },
   {
     name: "scanlines",
@@ -156,11 +209,15 @@ function createPostProcessPass(
   includeResolver: IncludeResolver
 ): PostProcessPassConfig {
   const { name, source, path, enabled } = definition;
+  const parameters = "parameters" in definition ? definition.parameters : [];
 
   return {
     name,
     path,
     source: includeResolver(source, path),
     enabled,
+    ...(parameters.length > 0
+      ? { parameters: parameters.map((parameter) => ({ ...parameter })) }
+      : {}),
   };
 }

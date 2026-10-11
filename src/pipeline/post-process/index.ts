@@ -72,6 +72,20 @@ export class PostProcessPipeline {
     return null;
   }
 
+  setParameter(passName: string, key: string, value: number) {
+    const result = this.state.setParameter(passName, key, value);
+    if (result) this.notifyStateChange();
+
+    return result;
+  }
+
+  resetPassParameters(passName: string) {
+    const reset = this.state.resetPassParameters(passName);
+    if (reset) this.notifyStateChange();
+
+    return reset;
+  }
+
   togglePassAt(index: number): { name: string; enabled: boolean } | null {
     const result = this.state.togglePassAt(index);
     if (!result) return null;
@@ -135,6 +149,13 @@ export class PostProcessPipeline {
     return this.state.enabledByName;
   }
 
+  get snapshot() {
+    return {
+      passes: this.state.snapshot,
+      selectedPassIndex: this.state.selectedPassIndex,
+    };
+  }
+
   render(options: PostProcessRenderOptions) {
     const {
       inputTexture,
@@ -150,6 +171,7 @@ export class PostProcessPipeline {
     }
 
     for (const step of plan) {
+      const passState = this.state.snapshot[step.passIndex];
       const outputFramebuffer = this.resolveDestination(step.output);
 
       if (outputFramebuffer) {
@@ -163,6 +185,12 @@ export class PostProcessPipeline {
           u_time: { type: "1f", value: time },
           u_debugMode: { type: "1i", value: debugMode },
           u_resolution: { type: "2f", value: resolution },
+          ...Object.fromEntries(
+            (passState.parameters ?? []).map((parameter) => [
+              parameter.uniform,
+              { type: "1f" as const, value: parameter.value },
+            ]),
+          ),
         },
         textures: [
           {
@@ -191,10 +219,7 @@ export class PostProcessPipeline {
   }
 
   private notifyStateChange() {
-    this.onStateChange({
-      passes: this.state.snapshot,
-      selectedPassIndex: this.state.selectedPassIndex,
-    });
+    this.onStateChange(this.snapshot);
   }
 
   private resolveTexture(source: TextureSource, sceneTexture: WebGLTexture) {

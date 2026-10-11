@@ -169,6 +169,7 @@ function validatePasses(passes: readonly InitialPassState[]) {
     names.add(pass.name);
 
     const parameterKeys = new Set<string>();
+    const parameterUniforms = new Set<string>();
     for (const parameter of pass.parameters ?? []) {
       if (parameterKeys.has(parameter.key)) {
         throw new Error(
@@ -183,8 +184,14 @@ function validatePasses(passes: readonly InitialPassState[]) {
       ) {
         throw new Error(`invalid post-process parameter: ${pass.name}.${parameter.key}`);
       }
+      if (parameterUniforms.has(parameter.uniform)) {
+        throw new Error(
+          `duplicate post-process uniform: ${pass.name}.${parameter.uniform}`,
+        );
+      }
 
       parameterKeys.add(parameter.key);
+      parameterUniforms.add(parameter.uniform);
     }
   }
 }

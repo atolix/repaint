@@ -160,6 +160,10 @@ export class Renderer {
     return this.resources.postProcessControls;
   }
 
+  get postProcessSnapshot(): PostProcessSnapshot {
+    return this.resources.postProcessSnapshot;
+  }
+
   dispose() {
     if (this.disposed) return;
     this.disposed = true;

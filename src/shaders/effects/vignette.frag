@@ -3,6 +3,8 @@
 precision highp float;
 
 uniform sampler2D u_scene;
+uniform float u_radius;
+uniform float u_softness;
 
 #include "../lib/uniforms.glsl"
 #include "../lib/util.glsl"
@@ -13,7 +15,7 @@ out vec4 outColor;
 void main() {
   vec2 uv = getScreenUV();
   vec3 color = texture(u_scene, uv).rgb;
-  float vignette = circleMask(getCenteredUV(), 0.806, 0.382);
+  float vignette = circleMask(getCenteredUV(), u_radius, u_softness);
 
   color *= vignette;
 

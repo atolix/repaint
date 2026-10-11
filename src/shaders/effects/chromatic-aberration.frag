@@ -3,6 +3,7 @@
 precision highp float;
 
 uniform sampler2D u_scene;
+uniform float u_amount;
 
 #include "../lib/uniforms.glsl"
 #include "../lib/util.glsl"
@@ -13,7 +14,7 @@ out vec4 outColor;
 void main() {
   vec2 uv = getScreenUV();
   vec2 direction = getCenteredUV();
-  vec2 offset = direction * 0.012;
+  vec2 offset = direction * u_amount;
 
   float red = texture(u_scene, uv + offset).r;
   float green = texture(u_scene, uv).g;

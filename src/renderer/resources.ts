@@ -67,6 +67,10 @@ export class RenderResources {
     return this.postProcessPipeline.getPassStates();
   }
 
+  get postProcessSnapshot() {
+    return this.postProcessPipeline.snapshot;
+  }
+
   render({ resolution, time, debugMode }: RenderOptions) {
     const sceneTexture = this.scenePass.render({
       resolution,
