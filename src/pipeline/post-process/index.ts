@@ -55,13 +55,16 @@ export class PostProcessPipeline {
 
   updatePasses(passConfigs: PostProcessPassConfig[]): string | null {
     const nextPasses: PostProcessPass[] = [];
+    const enabledByName = new Map(
+      this.passes.map((pass) => [pass.name, pass.enabled]),
+    );
 
     try {
       for (const passConfig of passConfigs) {
         try {
           nextPasses.push({
             name: passConfig.name,
-            enabled: passConfig.enabled,
+            enabled: enabledByName.get(passConfig.name) ?? passConfig.enabled,
             program: createProgram(this.gl, vertexSource, passConfig.source),
           });
         } catch (error) {
