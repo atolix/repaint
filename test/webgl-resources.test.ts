@@ -84,7 +84,7 @@ function createFramebufferGl(statuses: number[] = [100]) {
     COLOR_ATTACHMENT0: 11,
     FRAMEBUFFER_COMPLETE: 100,
     createFramebuffer: vi.fn(() => framebuffer),
-    createTexture: vi.fn(() => texture),
+    createTexture: vi.fn<() => typeof texture | null>(() => texture),
     deleteFramebuffer: vi.fn(),
     deleteTexture: vi.fn(),
     bindTexture: vi.fn(),
