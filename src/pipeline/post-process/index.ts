@@ -5,13 +5,10 @@ import { drawPass } from "../../pass/draw";
 import vertexSource from "../../shaders/fullscreen.vert?raw";
 import outputSource from "../../shaders/output.frag?raw";
 import { logPipeline } from "../log";
+import { PostProcessState } from "./state";
+import type { PostProcessPassConfig } from "./types";
 
-export type PostProcessPassConfig = {
-  name: string;
-  path: string;
-  source: string;
-  enabled: boolean;
-};
+export type { PostProcessPassConfig } from "./types";
 
 type PostProcessRenderOptions = {
   inputTexture: WebGLTexture;
@@ -22,7 +19,6 @@ type PostProcessRenderOptions = {
 
 type PostProcessPass = {
   name: string;
-  enabled: boolean;
   program: WebGLProgram;
 };
 
@@ -31,9 +27,10 @@ export class PostProcessPipeline {
   private readonly outputProgram: WebGLProgram;
   private readonly framebuffers: [Framebuffer, Framebuffer];
   private readonly passes: PostProcessPass[];
-  private selectedPassIndex = 0;
+  private readonly state: PostProcessState;
 
   constructor(gl: WebGL2RenderingContext, passConfigs: PostProcessPassConfig[]) {
+    const state = new PostProcessState(passConfigs);
     let outputProgram: WebGLProgram | null = null;
     const framebuffers: Framebuffer[] = [];
     const passes: PostProcessPass[] = [];
@@ -50,7 +47,6 @@ export class PostProcessPipeline {
         try {
           passes.push({
             name: passConfig.name,
-            enabled: passConfig.enabled,
             program: createProgram(gl, vertexSource, passConfig.source),
           });
         } catch (error) {
@@ -70,22 +66,21 @@ export class PostProcessPipeline {
     this.outputProgram = outputProgram;
     this.framebuffers = [framebuffers[0], framebuffers[1]];
     this.passes = passes;
+    this.state = state;
 
     this.log();
   }
 
   updatePasses(passConfigs: PostProcessPassConfig[]): string | null {
     const nextPasses: PostProcessPass[] = [];
-    const enabledByName = new Map(
-      this.passes.map((pass) => [pass.name, pass.enabled]),
-    );
 
     try {
+      new PostProcessState(passConfigs);
+
       for (const passConfig of passConfigs) {
         try {
           nextPasses.push({
             name: passConfig.name,
-            enabled: enabledByName.get(passConfig.name) ?? passConfig.enabled,
             program: createProgram(this.gl, vertexSource, passConfig.source),
           });
         } catch (error) {
@@ -98,9 +93,7 @@ export class PostProcessPipeline {
       }
 
       this.passes.splice(0, this.passes.length, ...nextPasses);
-      if (this.selectedPassIndex >= this.passes.length) {
-        this.selectedPassIndex = Math.max(0, this.passes.length - 1);
-      }
+      this.state.reconcile(passConfigs);
       this.log();
       return null;
     } catch (error) {
@@ -113,62 +106,66 @@ export class PostProcessPipeline {
   }
 
   togglePassAt(index: number): { name: string; enabled: boolean } | null {
-    const pass = this.passes[index];
+    const result = this.state.togglePassAt(index);
+    if (!result) return null;
 
-    if (!pass) return null;
-
-    pass.enabled = !pass.enabled;
     this.log();
 
     return {
-      name: pass.name,
-      enabled: pass.enabled,
+      name: result.name,
+      enabled: result.enabled,
     };
   }
 
   toggleSelectedPass(): { name: string; enabled: boolean; index: number } | null {
-    const result = this.togglePassAt(this.selectedPassIndex);
+    const result = this.state.toggleSelectedPass();
 
     if (!result) return null;
 
-    return {
-      ...result,
-      index: this.selectedPassIndex,
-    };
+    this.log();
+
+    return result;
   }
 
   selectPassAt(index: number): { name: string; index: number } | null {
-    const pass = this.passes[index];
+    const result = this.state.selectPassAt(index);
+    if (!result) return null;
 
-    if (!pass) return null;
-
-    this.selectedPassIndex = index;
     this.log();
 
-    return {
-      name: pass.name,
-      index,
-    };
+    return result;
   }
 
   selectNextPass(): { name: string; index: number } | null {
-    return this.selectPassByOffset(1);
+    const result = this.state.selectNextPass();
+    if (result) this.log();
+
+    return result;
   }
 
   selectPreviousPass(): { name: string; index: number } | null {
-    return this.selectPassByOffset(-1);
+    const result = this.state.selectPreviousPass();
+    if (result) this.log();
+
+    return result;
   }
 
   selectFirstPass(): { name: string; index: number } | null {
-    return this.selectPassAt(0);
+    const result = this.state.selectFirstPass();
+    if (result) this.log();
+
+    return result;
   }
 
   selectLastPass(): { name: string; index: number } | null {
-    return this.selectPassAt(this.passes.length - 1);
+    const result = this.state.selectLastPass();
+    if (result) this.log();
+
+    return result;
   }
 
   getPassStates() {
-    return new Map(this.passes.map((pass) => [pass.name, pass.enabled]));
+    return this.state.enabledByName;
   }
 
   render(options: PostProcessRenderOptions) {
@@ -178,7 +175,8 @@ export class PostProcessPipeline {
       time,
       debugMode,
     } = options;
-    const enabledPassCount = this.passes.reduce(
+    const passStates = this.state.snapshot;
+    const enabledPassCount = passStates.reduce(
       (count, pass) => count + Number(pass.enabled),
       0,
     );
@@ -191,8 +189,10 @@ export class PostProcessPipeline {
     let currentTexture = inputTexture;
     let enabledPassIndex = 0;
 
-    for (const pass of this.passes) {
-      if (!pass.enabled) continue;
+    for (let passIndex = 0; passIndex < this.passes.length; passIndex++) {
+      if (!passStates[passIndex].enabled) continue;
+
+      const pass = this.passes[passIndex];
 
       const isLast = enabledPassIndex === enabledPassCount - 1;
       const outputFramebuffer = isLast
@@ -242,17 +242,9 @@ export class PostProcessPipeline {
 
   private log() {
     logPipeline({
-      postPasses: this.passes,
-      selectedPostPassIndex: this.selectedPassIndex,
+      postPasses: this.state.snapshot,
+      selectedPostPassIndex: this.state.selectedPassIndex,
     });
-  }
-
-  private selectPassByOffset(offset: number): { name: string; index: number } | null {
-    if (this.passes.length === 0) return null;
-
-    const nextIndex = wrapIndex(this.selectedPassIndex + offset, this.passes.length);
-
-    return this.selectPassAt(nextIndex);
   }
 
   dispose() {
@@ -266,10 +258,6 @@ export class PostProcessPipeline {
       framebuffer.dispose();
     }
   }
-}
-
-function wrapIndex(index: number, length: number) {
-  return ((index % length) + length) % length;
 }
 
 function formatPassError(passConfig: PostProcessPassConfig, error: unknown) {

@@ -18,7 +18,7 @@ import thresholdSource from "../../shaders/effects/threshold.frag?raw";
 import vignetteSource from "../../shaders/effects/vignette.frag?raw";
 import waveDistortionSource from "../../shaders/effects/wave-distortion.frag?raw";
 import { resolveIncludes, type ShaderIncludeRoot } from "../../gl/include";
-import type { PostProcessPassConfig } from ".";
+import type { PostProcessPassConfig } from "./types";
 
 type IncludeResolver = typeof resolveIncludes;
 

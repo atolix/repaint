@@ -1,7 +1,7 @@
 import { sendHotEvent } from "../hmr";
 
 type PipelineLogOptions = {
-  postPasses: {
+  postPasses: readonly {
     name: string;
     enabled: boolean;
   }[];
