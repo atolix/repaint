@@ -1,5 +1,10 @@
 import { Framebuffer } from "../gl/framebuffer";
 
+const uniformLocationCache = new WeakMap<
+  WebGLProgram,
+  Map<string, WebGLUniformLocation | null>
+>();
+
 export type UniformValue =
   | { type: "1f"; value: number }
   | { type: "1i"; value: number }
@@ -37,7 +42,7 @@ export function drawPass(
   gl.useProgram(program);
 
   for (const [name, uniform] of Object.entries(uniforms)) {
-    const location = gl.getUniformLocation(program, name);
+    const location = getUniformLocation(gl, program, name);
     if (location === null) continue;
 
     switch (uniform.type) {
@@ -54,7 +59,7 @@ export function drawPass(
   }
 
   textures.forEach((textureUniform, index) => {
-    const location = gl.getUniformLocation(program, textureUniform.name);
+    const location = getUniformLocation(gl, program, textureUniform.name);
     if (location === null) return;
 
     gl.activeTexture(gl.TEXTURE0 + index);
@@ -63,4 +68,23 @@ export function drawPass(
   });
 
   gl.drawArrays(gl.TRIANGLES, 0, 3);
+}
+
+function getUniformLocation(
+  gl: WebGL2RenderingContext,
+  program: WebGLProgram,
+  name: string,
+) {
+  let locations = uniformLocationCache.get(program);
+
+  if (!locations) {
+    locations = new Map();
+    uniformLocationCache.set(program, locations);
+  }
+
+  if (!locations.has(name)) {
+    locations.set(name, gl.getUniformLocation(program, name));
+  }
+
+  return locations.get(name) ?? null;
 }

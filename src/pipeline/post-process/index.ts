@@ -153,19 +153,26 @@ export class PostProcessPipeline {
       time,
       debugMode,
     } = options;
-    const enabledPasses = this.passes.filter((pass) => pass.enabled);
+    const enabledPassCount = this.passes.reduce(
+      (count, pass) => count + Number(pass.enabled),
+      0,
+    );
 
-    if (enabledPasses.length === 0) {
+    if (enabledPassCount === 0) {
       this.renderOutput(inputTexture, resolution);
       return;
     }
 
     let currentTexture = inputTexture;
+    let enabledPassIndex = 0;
 
-    for (let i = 0; i < enabledPasses.length; i++) {
-      const pass = enabledPasses[i];
-      const isLast = i === enabledPasses.length - 1;
-      const outputFramebuffer = isLast ? null : this.framebuffers[i % 2];
+    for (const pass of this.passes) {
+      if (!pass.enabled) continue;
+
+      const isLast = enabledPassIndex === enabledPassCount - 1;
+      const outputFramebuffer = isLast
+        ? null
+        : this.framebuffers[enabledPassIndex % 2];
 
       if (outputFramebuffer) {
         outputFramebuffer.resize(resolution[0], resolution[1]);
@@ -188,6 +195,7 @@ export class PostProcessPipeline {
       });
 
       if (outputFramebuffer) currentTexture = outputFramebuffer.texture;
+      enabledPassIndex += 1;
     }
   }
 
