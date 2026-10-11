@@ -25,12 +25,14 @@ type IncludeResolver = typeof resolveIncludes;
 const postProcessDefinitions = [
   {
     name: "invert",
+    description: "Reverses every color channel for a photographic negative look.",
     source: invertSource,
     path: "./shaders/effects/invert.frag",
     enabled: false,
   },
   {
     name: "noise",
+    description: "Adds animated monochrome grain across the image.",
     source: noiseSource,
     path: "./shaders/effects/noise.frag",
     enabled: false,
@@ -48,6 +50,7 @@ const postProcessDefinitions = [
   },
   {
     name: "vignette",
+    description: "Darkens the image toward its edges with a soft circular mask.",
     source: vignetteSource,
     path: "./shaders/effects/vignette.frag",
     enabled: false,
@@ -74,6 +77,7 @@ const postProcessDefinitions = [
   },
   {
     name: "chromatic-aberration",
+    description: "Separates red and blue channels outward from the image center.",
     source: chromaticAberrationSource,
     path: "./shaders/effects/chromatic-aberration.frag",
     enabled: false,
@@ -91,6 +95,7 @@ const postProcessDefinitions = [
   },
   {
     name: "pixelate",
+    description: "Reduces detail by sampling the image in square pixel blocks.",
     source: pixelateSource,
     path: "./shaders/effects/pixelate.frag",
     enabled: false,
@@ -108,84 +113,98 @@ const postProcessDefinitions = [
   },
   {
     name: "scanlines",
+    description: "Applies alternating horizontal brightness like a CRT display.",
     source: scanlinesSource,
     path: "./shaders/effects/scanlines.frag",
     enabled: false,
   },
   {
     name: "posterize",
+    description: "Quantizes color channels into a small number of tonal levels.",
     source: posterizeSource,
     path: "./shaders/effects/posterize.frag",
     enabled: false,
   },
   {
     name: "sepia",
+    description: "Blends the image toward warm, vintage brown tones.",
     source: sepiaSource,
     path: "./shaders/effects/sepia.frag",
     enabled: false,
   },
   {
     name: "edge-detect",
+    description: "Highlights luminance edges using a Sobel-style filter.",
     source: edgeDetectSource,
     path: "./shaders/effects/edge-detect.frag",
     enabled: false,
   },
   {
     name: "grayscale",
+    description: "Converts the image to luminance-based monochrome.",
     source: grayscaleSource,
     path: "./shaders/effects/grayscale.frag",
     enabled: false,
   },
   {
     name: "threshold",
+    description: "Reduces luminance to hard black and white regions.",
     source: thresholdSource,
     path: "./shaders/effects/threshold.frag",
     enabled: false,
   },
   {
     name: "glitch",
+    description: "Adds animated horizontal displacement, channel splits, and static.",
     source: glitchSource,
     path: "./shaders/effects/glitch.frag",
     enabled: false,
   },
   {
     name: "barrel-distortion",
+    description: "Bends the image outward with a lens-like barrel distortion.",
     source: barrelDistortionSource,
     path: "./shaders/effects/barrel-distortion.frag",
     enabled: false,
   },
   {
     name: "wave-distortion",
+    description: "Offsets texture coordinates with animated horizontal and vertical waves.",
     source: waveDistortionSource,
     path: "./shaders/effects/wave-distortion.frag",
     enabled: false,
   },
   {
     name: "contrast",
+    description: "Expands the difference between dark and bright colors.",
     source: contrastSource,
     path: "./shaders/effects/contrast.frag",
     enabled: false,
   },
   {
     name: "duotone",
+    description: "Maps luminance between deep blue shadows and warm highlights.",
     source: duotoneSource,
     path: "./shaders/effects/duotone.frag",
     enabled: false,
   },
   {
     name: "swirl",
+    description: "Rotates pixels around the center with a radial falloff.",
     source: swirlSource,
     path: "./shaders/effects/swirl.frag",
     enabled: false,
   },
   {
     name: "mirror",
+    description: "Mirrors the left half of the image across its center.",
     source: mirrorSource,
     path: "./shaders/effects/mirror.frag",
     enabled: false,
   },
   {
     name: "emboss",
+    description: "Uses neighboring luminance differences to create raised relief.",
     source: embossSource,
     path: "./shaders/effects/emboss.frag",
     enabled: false,
@@ -208,11 +227,12 @@ function createPostProcessPass(
   definition: typeof postProcessDefinitions[number],
   includeResolver: IncludeResolver
 ): PostProcessPassConfig {
-  const { name, source, path, enabled } = definition;
+  const { name, description, source, path, enabled } = definition;
   const parameters = "parameters" in definition ? definition.parameters : [];
 
   return {
     name,
+    description,
     path,
     source: includeResolver(source, path),
     enabled,

@@ -95,6 +95,7 @@ const sources = {
 const passes: PostProcessPassConfig[] = [
   {
     name: "first",
+    description: "First pass.",
     path: "./shaders/post/first.frag",
     source: "first",
     enabled: false,

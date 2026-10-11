@@ -17,8 +17,20 @@ const shaderSources = {
 };
 
 const passConfigs: PostProcessPassConfig[] = [
-  { name: "first", path: "first.frag", source: "first", enabled: false },
-  { name: "second", path: "second.frag", source: "second", enabled: true },
+  {
+    name: "first",
+    description: "First pass.",
+    path: "first.frag",
+    source: "first",
+    enabled: false,
+  },
+  {
+    name: "second",
+    description: "Second pass.",
+    path: "second.frag",
+    source: "second",
+    enabled: true,
+  },
 ];
 
 function createGl() {

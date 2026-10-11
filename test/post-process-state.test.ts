@@ -62,6 +62,18 @@ describe("PostProcessState", () => {
     ]);
   });
 
+  it("publishes the latest pass description", () => {
+    const state = new PostProcessState([
+      { name: "first", description: "Original description.", enabled: false },
+    ]);
+
+    state.reconcile([
+      { name: "first", description: "Updated description.", enabled: false },
+    ]);
+
+    expect(state.snapshot[0].description).toBe("Updated description.");
+  });
+
   it("clamps selection when the selected pass is removed", () => {
     const state = new PostProcessState([
       { name: "first", enabled: false },

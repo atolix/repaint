@@ -39,6 +39,7 @@ import { PostProcessPipeline } from "../src/pipeline/post-process";
 
 const pass: PostProcessPassConfig = {
   name: "noise",
+  description: "Adds grain.",
   path: "noise.frag",
   source: "noise",
   enabled: true,

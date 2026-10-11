@@ -139,8 +139,9 @@ export class PostProcessState {
   }
 
   get snapshot(): readonly PostProcessPassState[] {
-    return this.passes.map(({ name, enabled, parameters }) => ({
+    return this.passes.map(({ name, description, enabled, parameters }) => ({
       name,
+      ...(description ? { description } : {}),
       enabled,
       ...(parameters.length > 0
         ? { parameters: parameters.map((parameter) => ({ ...parameter })) }
@@ -186,6 +187,7 @@ export class PostProcessState {
 function createPasses(passes: readonly InitialPassState[]): MutablePassState[] {
   return passes.map((pass) => ({
     name: pass.name,
+    ...(pass.description ? { description: pass.description } : {}),
     enabled: pass.enabled,
     parameters: (pass.parameters ?? []).map((parameter) => ({
       ...parameter,

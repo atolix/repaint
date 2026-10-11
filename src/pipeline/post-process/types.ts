@@ -16,6 +16,7 @@ export type PostProcessNumberParameterState =
 
 export type PostProcessPassConfig = {
   name: string;
+  description: string;
   path: string;
   source: string;
   enabled: boolean;
@@ -24,6 +25,7 @@ export type PostProcessPassConfig = {
 
 export type PostProcessPassState = {
   name: string;
+  description?: string;
   enabled: boolean;
   parameters?: readonly PostProcessNumberParameterState[];
 };
