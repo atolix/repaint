@@ -5,7 +5,7 @@ export function bindDebugShortcut(
   target: Window = window,
 ) {
   const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.repeat || event.key !== "d") return;
+    if (event.repeat || event.code !== "KeyD") return;
     state.cycle();
   };
 

@@ -13,4 +13,17 @@ describe("DebugState", () => {
     ]);
     expect(state.mode).toBe(0);
   });
+
+  it("notifies subscribers immediately and after changes", () => {
+    const state = new DebugState();
+    const modes: number[] = [];
+    const unsubscribe = state.subscribe((mode) => modes.push(mode));
+
+    state.cycle();
+    state.cycle();
+    unsubscribe();
+    state.cycle();
+
+    expect(modes).toEqual([0, 1, 2]);
+  });
 });
