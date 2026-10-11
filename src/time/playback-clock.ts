@@ -50,10 +50,20 @@ export class PlaybackClock {
     this.notify();
   }
 
-  step() {
+  stepForward() {
     if (!this.paused) return;
 
     this.elapsedSeconds += frameDurationSeconds;
+    this.notify();
+  }
+
+  stepBackward() {
+    if (!this.paused || this.elapsedSeconds === 0) return;
+
+    this.elapsedSeconds = Math.max(
+      0,
+      this.elapsedSeconds - frameDurationSeconds,
+    );
     this.notify();
   }
 

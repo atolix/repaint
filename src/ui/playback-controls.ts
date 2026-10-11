@@ -23,7 +23,7 @@ export class PlaybackControls {
     this.root.addEventListener("keydown", stopPropagation);
 
     this.toggle = createButton("Pause", () => this.clock.togglePaused());
-    this.step = createButton("Step", () => this.clock.step());
+    this.step = createButton("Step", () => this.clock.stepForward());
     this.reset = createButton("Reset", () => this.clock.reset());
     this.speed = createSpeedSelect();
     this.time = document.createElement("output");

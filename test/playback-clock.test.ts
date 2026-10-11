@@ -28,7 +28,7 @@ describe("PlaybackClock", () => {
     expect(clock.tick(1_500)).toBe(0.5);
   });
 
-  it("resets and steps forward by one 60 fps frame while paused", () => {
+  it("resets and steps by one 60 fps frame while paused", () => {
     const clock = new PlaybackClock();
     clock.tick(0);
     clock.tick(500);
@@ -36,12 +36,18 @@ describe("PlaybackClock", () => {
 
     expect(clock.time).toBe(0);
 
-    clock.step();
+    clock.stepForward();
     expect(clock.time).toBe(0);
 
     clock.togglePaused();
-    clock.step();
+    clock.stepForward();
     expect(clock.time).toBeCloseTo(1 / 60);
+
+    clock.stepBackward();
+    expect(clock.time).toBe(0);
+
+    clock.stepBackward();
+    expect(clock.time).toBe(0);
   });
 
   it("publishes playback state and supports unsubscribe", () => {
@@ -71,7 +77,7 @@ describe("PlaybackClock", () => {
     clock.tick(250);
     clock.reset();
     clock.togglePaused();
-    clock.step();
+    clock.stepForward();
 
     expect(elapsedTimes).toEqual([0, 0.25, 0, 0, 1 / 60]);
   });
