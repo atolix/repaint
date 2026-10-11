@@ -12,8 +12,11 @@ type ParameterInputs = {
 export class ParameterPanel {
   private readonly getControls: () => PostProcessControls;
   private readonly root: HTMLElement;
+  private readonly parameterRoot: HTMLElement;
   private readonly toggle: HTMLButtonElement;
   private readonly parameterInputs = new Map<string, ParameterInputs>();
+  private selectedPassButton: HTMLButtonElement | null = null;
+  private hasParameters = false;
   private structureSignature = "";
   private open = true;
 
@@ -23,6 +26,12 @@ export class ParameterPanel {
     this.root.className = "parameter-panel";
     this.root.setAttribute("aria-label", "Effect inspector");
     this.root.addEventListener("keydown", (event) => event.stopPropagation());
+    this.root.addEventListener("scroll", this.positionParameterPanel);
+
+    this.parameterRoot = document.createElement("section");
+    this.parameterRoot.className = "parameter-panel-parameters";
+    this.parameterRoot.setAttribute("aria-label", "Effect parameters");
+    this.parameterRoot.addEventListener("keydown", (event) => event.stopPropagation());
 
     this.toggle = document.createElement("button");
     this.toggle.type = "button";
@@ -30,8 +39,9 @@ export class ParameterPanel {
     this.toggle.textContent = "Controls";
     this.toggle.addEventListener("click", this.toggleOpen);
 
-    document.body.append(this.root, this.toggle);
+    document.body.append(this.root, this.parameterRoot, this.toggle);
     window.addEventListener("keydown", this.handleWindowKeyDown);
+    window.addEventListener("resize", this.positionParameterPanel);
     this.updateVisibility();
   }
 
@@ -44,17 +54,23 @@ export class ParameterPanel {
 
     this.structureSignature = signature;
     this.parameterInputs.clear();
+    this.selectedPassButton = null;
     this.root.replaceChildren(
       this.createHeader(),
       this.createPassList(snapshot),
-      this.createParameterSection(snapshot),
     );
+    this.renderParameterSection(snapshot);
+    this.updateVisibility();
+    this.positionParameterPanel();
   }
 
   dispose() {
     window.removeEventListener("keydown", this.handleWindowKeyDown);
+    window.removeEventListener("resize", this.positionParameterPanel);
+    this.root.removeEventListener("scroll", this.positionParameterPanel);
     this.toggle.removeEventListener("click", this.toggleOpen);
     this.root.remove();
+    this.parameterRoot.remove();
     this.toggle.remove();
   }
 
@@ -85,6 +101,7 @@ export class ParameterPanel {
       select.addEventListener("click", () => {
         this.getControls().selectPassAt(index);
       });
+      if (index === snapshot.selectedPassIndex) this.selectedPassButton = select;
 
       enabled.type = "checkbox";
       enabled.checked = pass.enabled;
@@ -100,25 +117,19 @@ export class ParameterPanel {
     return list;
   }
 
-  private createParameterSection(snapshot: PostProcessSnapshot) {
-    const section = document.createElement("section");
+  private renderParameterSection(snapshot: PostProcessSnapshot) {
     const selectedPass = snapshot.passes[snapshot.selectedPassIndex];
+    this.parameterRoot.replaceChildren();
+    this.hasParameters = Boolean(selectedPass?.parameters?.length);
+    if (!selectedPass?.parameters?.length) return;
+
     const heading = document.createElement("div");
     const title = document.createElement("h2");
 
-    section.className = "parameter-panel-parameters";
     heading.className = "parameter-panel-heading";
-    title.textContent = selectedPass?.name ?? "No effect selected";
+    title.textContent = selectedPass.name;
     heading.append(title);
-    section.append(heading);
-
-    if (!selectedPass || !selectedPass.parameters?.length) {
-      const empty = document.createElement("p");
-      empty.className = "parameter-panel-empty";
-      empty.textContent = "No adjustable parameters";
-      section.append(empty);
-      return section;
-    }
+    this.parameterRoot.append(heading);
 
     const reset = document.createElement("button");
     reset.type = "button";
@@ -129,10 +140,10 @@ export class ParameterPanel {
     heading.append(reset);
 
     for (const parameter of selectedPass.parameters) {
-      section.append(this.createParameterControl(selectedPass.name, parameter));
+      this.parameterRoot.append(
+        this.createParameterControl(selectedPass.name, parameter),
+      );
     }
-
-    return section;
   }
 
   private createParameterControl(
@@ -191,9 +202,24 @@ export class ParameterPanel {
 
   private updateVisibility() {
     this.root.hidden = !this.open;
+    this.parameterRoot.hidden = !this.open || !this.hasParameters;
     this.toggle.setAttribute("aria-expanded", String(this.open));
     this.toggle.textContent = this.open ? "Hide controls" : "Show controls";
   }
+
+  private positionParameterPanel = () => {
+    if (!this.open || !this.hasParameters || !this.selectedPassButton) return;
+
+    const row = this.selectedPassButton.getBoundingClientRect();
+    const panelHeight = this.parameterRoot.offsetHeight;
+    const margin = 16;
+    const top = Math.min(
+      row.top,
+      Math.max(margin, window.innerHeight - panelHeight - margin),
+    );
+
+    this.parameterRoot.style.top = `${Math.max(margin, top)}px`;
+  };
 }
 
 function configureNumberInput(

@@ -167,7 +167,9 @@ Use the arrow or bracket controls to select effects beyond the first nine.
 ## Effect Inspector
 
 The inspector is overlaid on the right side of the canvas and can be collapsed
-with `p` or its bottom-right button. It provides:
+with `p` or its bottom-right button. Parameters for the selected effect open in
+a flyout beside its row, so the pass list does not need to be scrolled to reach
+them. It provides:
 
 - selection and ON/OFF controls for every post-process pass
 - sliders and numeric inputs for the selected pass
