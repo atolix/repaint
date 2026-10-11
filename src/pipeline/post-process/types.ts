@@ -18,3 +18,8 @@ export type SelectedPass = {
 export type ToggledPass = SelectedPass & {
   enabled: boolean;
 };
+
+export type PostProcessSnapshot = {
+  passes: readonly PostProcessPassState[];
+  selectedPassIndex: number;
+};

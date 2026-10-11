@@ -4,14 +4,8 @@ import {
   type RenderDestination,
   type TextureSource,
 } from "./post-process/plan";
-
-type PipelineLogOptions = {
-  postPasses: readonly {
-    name: string;
-    enabled: boolean;
-  }[];
-  selectedPostPassIndex?: number;
-};
+import type { PostProcessSnapshot } from "./post-process/types";
+import type { ResolutionState } from "../renderer";
 
 type PipelineLogPass = {
   name: string;
@@ -21,13 +15,10 @@ type PipelineLogPass = {
   selected?: boolean;
 }
 
-type ResolutionLogOptions = {
-  width: number;
-  height: number;
-  dpr: number;
-};
-
-export function logPipeline({ postPasses, selectedPostPassIndex }: PipelineLogOptions) {
+export function logPipeline({
+  passes: postPasses,
+  selectedPassIndex: selectedPostPassIndex,
+}: PostProcessSnapshot) {
   const plan = buildPostProcessRenderPlan(postPasses);
   const stepsByPassIndex = new Map(plan.map((step) => [step.passIndex, step]));
   const passes: PipelineLogPass[] = [
@@ -71,6 +62,6 @@ function formatRenderDestination(destination: RenderDestination) {
     : `postFramebuffer${destination.index}.texture`;
 }
 
-export function logResolution({ width, height, dpr }: ResolutionLogOptions) {
+export function logResolution({ width, height, dpr }: ResolutionState) {
   sendHotEvent("resolution", { width, height, dpr }, 0);
 }

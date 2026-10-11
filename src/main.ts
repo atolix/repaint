@@ -6,12 +6,21 @@ import {
   createPostProcessIncludeRoots,
   createPostProcessPasses,
 } from "./pipeline/post-process/config";
+import { logPipeline, logResolution } from "./pipeline/log";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#canvas");
 if (!canvas) throw new Error("canvas element not found");
 
 const sceneSource = resolveIncludes(mainSource, "./shaders/main.frag");
-const renderer = new Renderer(canvas, sceneSource, createPostProcessPasses());
+const renderer = new Renderer(
+  canvas,
+  sceneSource,
+  createPostProcessPasses(),
+  {
+    onPostProcessStateChange: logPipeline,
+    onResolutionChange: logResolution,
+  },
+);
 logShaderCompiled("./shaders/main.frag");
 logIncludeGraph(createIncludeGraph());
 

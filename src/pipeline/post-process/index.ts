@@ -4,9 +4,11 @@ import { resolveIncludes } from "../../gl/include";
 import { drawPass } from "../../pass/draw";
 import vertexSource from "../../shaders/fullscreen.vert?raw";
 import outputSource from "../../shaders/output.frag?raw";
-import { logPipeline } from "../log";
 import { PostProcessState } from "./state";
-import type { PostProcessPassConfig } from "./types";
+import type {
+  PostProcessPassConfig,
+  PostProcessSnapshot,
+} from "./types";
 import {
   buildPostProcessRenderPlan,
   type RenderDestination,
@@ -33,8 +35,13 @@ export class PostProcessPipeline {
   private readonly framebuffers: [Framebuffer, Framebuffer];
   private readonly passes: PostProcessPass[];
   private readonly state: PostProcessState;
+  private readonly onStateChange: (snapshot: PostProcessSnapshot) => void;
 
-  constructor(gl: WebGL2RenderingContext, passConfigs: PostProcessPassConfig[]) {
+  constructor(
+    gl: WebGL2RenderingContext,
+    passConfigs: PostProcessPassConfig[],
+    onStateChange: (snapshot: PostProcessSnapshot) => void,
+  ) {
     const state = new PostProcessState(passConfigs);
     let outputProgram: WebGLProgram | null = null;
     const framebuffers: Framebuffer[] = [];
@@ -72,8 +79,9 @@ export class PostProcessPipeline {
     this.framebuffers = [framebuffers[0], framebuffers[1]];
     this.passes = passes;
     this.state = state;
+    this.onStateChange = onStateChange;
 
-    this.log();
+    this.notifyStateChange();
   }
 
   updatePasses(passConfigs: PostProcessPassConfig[]): string | null {
@@ -99,7 +107,7 @@ export class PostProcessPipeline {
 
       this.passes.splice(0, this.passes.length, ...nextPasses);
       this.state.reconcile(passConfigs);
-      this.log();
+      this.notifyStateChange();
       return null;
     } catch (error) {
       for (const pass of nextPasses) {
@@ -114,7 +122,7 @@ export class PostProcessPipeline {
     const result = this.state.togglePassAt(index);
     if (!result) return null;
 
-    this.log();
+    this.notifyStateChange();
 
     return {
       name: result.name,
@@ -127,7 +135,7 @@ export class PostProcessPipeline {
 
     if (!result) return null;
 
-    this.log();
+    this.notifyStateChange();
 
     return result;
   }
@@ -136,35 +144,35 @@ export class PostProcessPipeline {
     const result = this.state.selectPassAt(index);
     if (!result) return null;
 
-    this.log();
+    this.notifyStateChange();
 
     return result;
   }
 
   selectNextPass(): { name: string; index: number } | null {
     const result = this.state.selectNextPass();
-    if (result) this.log();
+    if (result) this.notifyStateChange();
 
     return result;
   }
 
   selectPreviousPass(): { name: string; index: number } | null {
     const result = this.state.selectPreviousPass();
-    if (result) this.log();
+    if (result) this.notifyStateChange();
 
     return result;
   }
 
   selectFirstPass(): { name: string; index: number } | null {
     const result = this.state.selectFirstPass();
-    if (result) this.log();
+    if (result) this.notifyStateChange();
 
     return result;
   }
 
   selectLastPass(): { name: string; index: number } | null {
     const result = this.state.selectLastPass();
-    if (result) this.log();
+    if (result) this.notifyStateChange();
 
     return result;
   }
@@ -229,10 +237,10 @@ export class PostProcessPipeline {
     });
   }
 
-  private log() {
-    logPipeline({
-      postPasses: this.state.snapshot,
-      selectedPostPassIndex: this.state.selectedPassIndex,
+  private notifyStateChange() {
+    this.onStateChange({
+      passes: this.state.snapshot,
+      selectedPassIndex: this.state.selectedPassIndex,
     });
   }
 

@@ -1,10 +1,21 @@
 import { PostProcessPipeline, type PostProcessPassConfig } from "./pipeline/post-process";
+import type { PostProcessSnapshot } from "./pipeline/post-process/types";
 import { DebugState } from "./debug/state";
 import { ScenePass } from "./pipeline/scene";
-import { logResolution } from "./pipeline/log";
 import { bindPostProcessShortcuts } from "./pipeline/post-process/controls";
 
 const maxRenderDevicePixelRatio = 2;
+
+export type ResolutionState = {
+  width: number;
+  height: number;
+  dpr: number;
+};
+
+export type RendererCallbacks = {
+  onPostProcessStateChange: (snapshot: PostProcessSnapshot) => void;
+  onResolutionChange: (resolution: ResolutionState) => void;
+};
 
 export class Renderer {
   private gl: WebGL2RenderingContext;
@@ -16,6 +27,7 @@ export class Renderer {
   private debugState: DebugState;
   private sceneSource: string;
   private postPasses: PostProcessPassConfig[];
+  private callbacks: RendererCallbacks;
   private removePostProcessShortcuts: () => void;
   private contextLost = false;
   private disposed = false;
@@ -24,7 +36,8 @@ export class Renderer {
   constructor(
     canvas: HTMLCanvasElement,
     sceneSource: string,
-    postPasses: PostProcessPassConfig[]
+    postPasses: PostProcessPassConfig[],
+    callbacks: RendererCallbacks,
   ) {
     const gl = canvas.getContext("webgl2");
 
@@ -35,9 +48,14 @@ export class Renderer {
     this.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE) as number;
     this.sceneSource = sceneSource;
     this.postPasses = postPasses;
+    this.callbacks = callbacks;
 
     this.scenePass = new ScenePass(gl, sceneSource);
-    this.postProcessPipeline = new PostProcessPipeline(gl, postPasses);
+    this.postProcessPipeline = new PostProcessPipeline(
+      gl,
+      postPasses,
+      callbacks.onPostProcessStateChange,
+    );
     this.debugState = new DebugState();
 
     this.removePostProcessShortcuts = bindPostProcessShortcuts(
@@ -86,7 +104,7 @@ export class Renderer {
       this.canvas.height = height;
 
       this.gl.viewport(0, 0, width, height);
-      logResolution({ width, height, dpr });
+      this.callbacks.onResolutionChange({ width, height, dpr });
     }
 
     return width > 0 && height > 0 ? [width, height] : null;
@@ -144,7 +162,11 @@ export class Renderer {
 
     try {
       nextScenePass = new ScenePass(this.gl, this.sceneSource);
-      nextPostProcessPipeline = new PostProcessPipeline(this.gl, restoredPasses);
+      nextPostProcessPipeline = new PostProcessPipeline(
+        this.gl,
+        restoredPasses,
+        this.callbacks.onPostProcessStateChange,
+      );
     } catch (error) {
       nextScenePass?.dispose();
       nextPostProcessPipeline?.dispose();
