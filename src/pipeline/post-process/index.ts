@@ -1,12 +1,10 @@
 import { Framebuffer } from "../../gl/framebuffer";
 import { createProgram } from "../../gl/program";
-import { resolveIncludes } from "../../gl/include";
 import { drawPass } from "../../pass/draw";
-import vertexSource from "../../shaders/fullscreen.vert?raw";
-import outputSource from "../../shaders/output.frag?raw";
 import { PostProcessState } from "./state";
 import type {
   PostProcessPassConfig,
+  PostProcessShaderSources,
   PostProcessSnapshot,
 } from "./types";
 import {
@@ -35,10 +33,12 @@ export class PostProcessPipeline {
   private readonly framebuffers: [Framebuffer, Framebuffer];
   private readonly passes: PostProcessPass[];
   private readonly state: PostProcessState;
+  private readonly shaderSources: PostProcessShaderSources;
   private readonly onStateChange: (snapshot: PostProcessSnapshot) => void;
 
   constructor(
     gl: WebGL2RenderingContext,
+    shaderSources: PostProcessShaderSources,
     passConfigs: PostProcessPassConfig[],
     onStateChange: (snapshot: PostProcessSnapshot) => void,
   ) {
@@ -50,8 +50,8 @@ export class PostProcessPipeline {
     try {
       outputProgram = createProgram(
         gl,
-        vertexSource,
-        resolveIncludes(outputSource, "./shaders/output.frag")
+        shaderSources.vertex,
+        shaderSources.output,
       );
       framebuffers.push(new Framebuffer(gl), new Framebuffer(gl));
 
@@ -59,7 +59,7 @@ export class PostProcessPipeline {
         try {
           passes.push({
             name: passConfig.name,
-            program: createProgram(gl, vertexSource, passConfig.source),
+            program: createProgram(gl, shaderSources.vertex, passConfig.source),
           });
         } catch (error) {
           throw new Error(formatPassError(passConfig, error));
@@ -79,6 +79,7 @@ export class PostProcessPipeline {
     this.framebuffers = [framebuffers[0], framebuffers[1]];
     this.passes = passes;
     this.state = state;
+    this.shaderSources = shaderSources;
     this.onStateChange = onStateChange;
 
     this.notifyStateChange();
@@ -94,7 +95,11 @@ export class PostProcessPipeline {
         try {
           nextPasses.push({
             name: passConfig.name,
-            program: createProgram(this.gl, vertexSource, passConfig.source),
+            program: createProgram(
+              this.gl,
+              this.shaderSources.vertex,
+              passConfig.source,
+            ),
           });
         } catch (error) {
           throw new Error(formatPassError(passConfig, error));

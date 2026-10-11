@@ -17,6 +17,12 @@ export type RendererCallbacks = {
   onResolutionChange: (resolution: ResolutionState) => void;
 };
 
+export type RendererShaderSources = {
+  vertex: string;
+  scene: string;
+  output: string;
+};
+
 export class Renderer {
   private gl: WebGL2RenderingContext;
   private canvas: HTMLCanvasElement;
@@ -25,7 +31,7 @@ export class Renderer {
   private scenePass: ScenePass;
   private postProcessPipeline: PostProcessPipeline;
   private debugState: DebugState;
-  private sceneSource: string;
+  private shaderSources: RendererShaderSources;
   private postPasses: PostProcessPassConfig[];
   private callbacks: RendererCallbacks;
   private removePostProcessShortcuts: () => void;
@@ -35,7 +41,7 @@ export class Renderer {
 
   constructor(
     canvas: HTMLCanvasElement,
-    sceneSource: string,
+    shaderSources: RendererShaderSources,
     postPasses: PostProcessPassConfig[],
     callbacks: RendererCallbacks,
   ) {
@@ -46,13 +52,18 @@ export class Renderer {
     this.gl = gl;
     this.canvas = canvas;
     this.maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE) as number;
-    this.sceneSource = sceneSource;
+    this.shaderSources = shaderSources;
     this.postPasses = postPasses;
     this.callbacks = callbacks;
 
-    this.scenePass = new ScenePass(gl, sceneSource);
+    this.scenePass = new ScenePass(
+      gl,
+      shaderSources.vertex,
+      shaderSources.scene,
+    );
     this.postProcessPipeline = new PostProcessPipeline(
       gl,
+      shaderSources,
       postPasses,
       callbacks.onPostProcessStateChange,
     );
@@ -67,7 +78,7 @@ export class Renderer {
 
   updateFragmentShader(fragmentSource: string): string | null {
     const error = this.scenePass.updateShader(fragmentSource);
-    if (!error) this.sceneSource = fragmentSource;
+    if (!error) this.shaderSources.scene = fragmentSource;
 
     return error;
   }
@@ -161,9 +172,14 @@ export class Renderer {
     let nextPostProcessPipeline: PostProcessPipeline | null = null;
 
     try {
-      nextScenePass = new ScenePass(this.gl, this.sceneSource);
+      nextScenePass = new ScenePass(
+        this.gl,
+        this.shaderSources.vertex,
+        this.shaderSources.scene,
+      );
       nextPostProcessPipeline = new PostProcessPipeline(
         this.gl,
+        this.shaderSources,
         restoredPasses,
         this.callbacks.onPostProcessStateChange,
       );

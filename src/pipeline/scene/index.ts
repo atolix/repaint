@@ -1,7 +1,6 @@
 import { Framebuffer } from "../../gl/framebuffer";
 import { createProgram } from "../../gl/program";
 import { drawPass } from "../../pass/draw";
-import vertexSource from "../../shaders/fullscreen.vert?raw";
 
 type ScenePassRenderOptions = {
   resolution: [number, number];
@@ -12,9 +11,14 @@ type ScenePassRenderOptions = {
 export class ScenePass {
   private readonly gl: WebGL2RenderingContext;
   private readonly framebuffer: Framebuffer;
+  private readonly vertexSource: string;
   private program: WebGLProgram;
 
-  constructor(gl: WebGL2RenderingContext, fragmentSource: string) {
+  constructor(
+    gl: WebGL2RenderingContext,
+    vertexSource: string,
+    fragmentSource: string,
+  ) {
     const framebuffer = new Framebuffer(gl);
     let program: WebGLProgram;
 
@@ -27,12 +31,17 @@ export class ScenePass {
 
     this.gl = gl;
     this.framebuffer = framebuffer;
+    this.vertexSource = vertexSource;
     this.program = program;
   }
 
   updateShader(fragmentSource: string): string | null {
     try {
-      const nextProgram = createProgram(this.gl, vertexSource, fragmentSource);
+      const nextProgram = createProgram(
+        this.gl,
+        this.vertexSource,
+        fragmentSource,
+      );
 
       this.gl.deleteProgram(this.program);
       this.program = nextProgram;

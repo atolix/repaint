@@ -23,3 +23,8 @@ export type PostProcessSnapshot = {
   passes: readonly PostProcessPassState[];
   selectedPassIndex: number;
 };
+
+export type PostProcessShaderSources = {
+  vertex: string;
+  output: string;
+};

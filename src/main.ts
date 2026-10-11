@@ -1,4 +1,6 @@
 import mainSource from "./shaders/main.frag?raw";
+import outputSource from "./shaders/output.frag?raw";
+import vertexSource from "./shaders/fullscreen.vert?raw";
 import { Renderer } from "./renderer";
 import { collectIncludeGraph, resolveIncludes, type ShaderIncludeRoot } from "./gl/include";
 import { logIncludeGraph, logShaderCompiled, logShaderError, reloadShader } from "./hmr";
@@ -12,9 +14,17 @@ const canvas = document.querySelector<HTMLCanvasElement>("#canvas");
 if (!canvas) throw new Error("canvas element not found");
 
 const sceneSource = resolveIncludes(mainSource, "./shaders/main.frag");
+const resolvedOutputSource = resolveIncludes(
+  outputSource,
+  "./shaders/output.frag",
+);
 const renderer = new Renderer(
   canvas,
-  sceneSource,
+  {
+    vertex: vertexSource,
+    scene: sceneSource,
+    output: resolvedOutputSource,
+  },
   createPostProcessPasses(),
   {
     onPostProcessStateChange: logPipeline,
