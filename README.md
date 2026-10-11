@@ -175,6 +175,7 @@ a top-aligned flyout to the left of the pass list, so moving the selection does
 not move the controls vertically. It provides:
 
 - selection and ON/OFF controls for every post-process pass
+- a description of the selected effect, including effects without parameters
 - sliders and numeric inputs for the selected pass
 - per-pass parameter reset
 

@@ -156,7 +156,6 @@ input {
 
 .parameter-panel-heading {
   justify-content: space-between;
-  margin-bottom: 14px;
 }
 
 .parameter-panel-heading h2 {
@@ -176,6 +175,12 @@ input {
 
 .parameter-panel-heading button {
   padding: 3px 7px;
+}
+
+.parameter-panel-description {
+  margin: 10px 0 14px;
+  color: #91a39d;
+  line-height: 1.5;
 }
 
 .parameter-panel-control {

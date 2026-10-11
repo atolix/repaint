@@ -16,7 +16,7 @@ export class ParameterPanel {
   private readonly toggle: HTMLButtonElement;
   private readonly parameterInputs = new Map<string, ParameterInputs>();
   private selectedPassButton: HTMLButtonElement | null = null;
-  private hasParameters = false;
+  private hasFlyout = false;
   private structureSignature = "";
   private open = true;
 
@@ -116,16 +116,21 @@ export class ParameterPanel {
   private renderParameterSection(snapshot: PostProcessSnapshot) {
     const selectedPass = snapshot.passes[snapshot.selectedPassIndex];
     this.parameterRoot.replaceChildren();
-    this.hasParameters = Boolean(selectedPass?.parameters?.length);
-    if (!selectedPass?.parameters?.length) return;
+    this.hasFlyout = Boolean(selectedPass);
+    if (!selectedPass) return;
 
     const heading = document.createElement("div");
     const title = document.createElement("h2");
+    const description = document.createElement("p");
 
     heading.className = "parameter-panel-heading";
     title.textContent = selectedPass.name;
     heading.append(title);
-    this.parameterRoot.append(heading);
+    description.className = "parameter-panel-description";
+    description.textContent = selectedPass.description ?? "No description available.";
+    this.parameterRoot.append(heading, description);
+
+    if (!selectedPass.parameters?.length) return;
 
     const reset = document.createElement("button");
     reset.type = "button";
@@ -200,7 +205,7 @@ export class ParameterPanel {
 
   private updateVisibility() {
     this.root.hidden = !this.open;
-    this.parameterRoot.hidden = !this.open || !this.hasParameters;
+    this.parameterRoot.hidden = !this.open || !this.hasFlyout;
     this.toggle.setAttribute("aria-expanded", String(this.open));
     this.toggle.textContent = this.open ? "Hide controls" : "Show controls";
   }

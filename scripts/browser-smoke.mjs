@@ -44,6 +44,14 @@ try {
     throw new Error(`effect inspector was not initialized\n${result.stdout}`);
   }
 
+  if (!result.stdout.includes('aria-label="Effect parameters"')) {
+    throw new Error(`effect description flyout was not initialized\n${result.stdout}`);
+  }
+
+  if (!result.stdout.includes("photographic negative look")) {
+    throw new Error(`effect description was not rendered\n${result.stdout}`);
+  }
+
   if (!result.stdout.includes('aria-label="Debug mode"')) {
     throw new Error(`debug indicator was not initialized\n${result.stdout}`);
   }
