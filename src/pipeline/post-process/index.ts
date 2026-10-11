@@ -1,7 +1,7 @@
 import { Framebuffer } from "../../gl/framebuffer";
-import { createProgram } from "../../gl/program";
 import { drawPass } from "../../pass/draw";
 import { PostProcessState } from "./state";
+import { PostProcessPrograms } from "./programs";
 import type {
   PostProcessPassConfig,
   PostProcessShaderSources,
@@ -22,18 +22,11 @@ type PostProcessRenderOptions = {
   debugMode: number;
 };
 
-type PostProcessPass = {
-  name: string;
-  program: WebGLProgram;
-};
-
 export class PostProcessPipeline {
   private readonly gl: WebGL2RenderingContext;
-  private readonly outputProgram: WebGLProgram;
+  private readonly programs: PostProcessPrograms;
   private readonly framebuffers: [Framebuffer, Framebuffer];
-  private readonly passes: PostProcessPass[];
   private readonly state: PostProcessState;
-  private readonly shaderSources: PostProcessShaderSources;
   private readonly onStateChange: (snapshot: PostProcessSnapshot) => void;
 
   constructor(
@@ -43,84 +36,40 @@ export class PostProcessPipeline {
     onStateChange: (snapshot: PostProcessSnapshot) => void,
   ) {
     const state = new PostProcessState(passConfigs);
-    let outputProgram: WebGLProgram | null = null;
+    const programs = new PostProcessPrograms(gl, shaderSources, passConfigs);
     const framebuffers: Framebuffer[] = [];
-    const passes: PostProcessPass[] = [];
 
     try {
-      outputProgram = createProgram(
-        gl,
-        shaderSources.vertex,
-        shaderSources.output,
-      );
       framebuffers.push(new Framebuffer(gl), new Framebuffer(gl));
-
-      for (const passConfig of passConfigs) {
-        try {
-          passes.push({
-            name: passConfig.name,
-            program: createProgram(gl, shaderSources.vertex, passConfig.source),
-          });
-        } catch (error) {
-          throw new Error(formatPassError(passConfig, error));
-        }
-      }
     } catch (error) {
-      if (outputProgram) gl.deleteProgram(outputProgram);
-
       for (const framebuffer of framebuffers) framebuffer.dispose();
-      for (const pass of passes) gl.deleteProgram(pass.program);
+      programs.dispose();
 
       throw error;
     }
 
     this.gl = gl;
-    this.outputProgram = outputProgram;
+    this.programs = programs;
     this.framebuffers = [framebuffers[0], framebuffers[1]];
-    this.passes = passes;
     this.state = state;
-    this.shaderSources = shaderSources;
     this.onStateChange = onStateChange;
 
     this.notifyStateChange();
   }
 
   updatePasses(passConfigs: PostProcessPassConfig[]): string | null {
-    const nextPasses: PostProcessPass[] = [];
-
     try {
       new PostProcessState(passConfigs);
-
-      for (const passConfig of passConfigs) {
-        try {
-          nextPasses.push({
-            name: passConfig.name,
-            program: createProgram(
-              this.gl,
-              this.shaderSources.vertex,
-              passConfig.source,
-            ),
-          });
-        } catch (error) {
-          throw new Error(formatPassError(passConfig, error));
-        }
-      }
-
-      for (const pass of this.passes) {
-        this.gl.deleteProgram(pass.program);
-      }
-
-      this.passes.splice(0, this.passes.length, ...nextPasses);
-      this.state.reconcile(passConfigs);
-      this.notifyStateChange();
-      return null;
     } catch (error) {
-      for (const pass of nextPasses) {
-        this.gl.deleteProgram(pass.program);
-      }
-
       return error instanceof Error ? error.message : String(error);
     }
+
+    const error = this.programs.update(passConfigs);
+    if (error) return error;
+
+    this.state.reconcile(passConfigs);
+    this.notifyStateChange();
+    return null;
   }
 
   togglePassAt(index: number): { name: string; enabled: boolean } | null {
@@ -201,7 +150,6 @@ export class PostProcessPipeline {
     }
 
     for (const step of plan) {
-      const pass = this.passes[step.passIndex];
       const outputFramebuffer = this.resolveDestination(step.output);
 
       if (outputFramebuffer) {
@@ -209,7 +157,7 @@ export class PostProcessPipeline {
       }
 
       drawPass(this.gl, {
-        program: pass.program,
+        program: this.programs.getPass(step.passIndex),
         framebuffer: outputFramebuffer,
         uniforms: {
           u_time: { type: "1f", value: time },
@@ -228,7 +176,7 @@ export class PostProcessPipeline {
 
   private renderOutput(inputTexture: WebGLTexture, resolution: [number, number]) {
     drawPass(this.gl, {
-      program: this.outputProgram,
+      program: this.programs.output,
       framebuffer: null,
       uniforms: {
         u_resolution: { type: "2f", value: resolution },
@@ -262,24 +210,10 @@ export class PostProcessPipeline {
   }
 
   dispose() {
-    this.gl.deleteProgram(this.outputProgram);
-
-    for (const pass of this.passes) {
-      this.gl.deleteProgram(pass.program);
-    }
+    this.programs.dispose();
 
     for (const framebuffer of this.framebuffers) {
       framebuffer.dispose();
     }
   }
-}
-
-function formatPassError(passConfig: PostProcessPassConfig, error: unknown) {
-  const message = error instanceof Error ? error.message : String(error);
-
-  return [
-    `post-process shader error: ${passConfig.name}`,
-    `path: ${passConfig.path}`,
-    message,
-  ].join("\n");
 }
