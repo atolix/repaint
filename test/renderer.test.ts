@@ -57,6 +57,13 @@ vi.mock("../src/renderer/resources", () => ({
     get postProcessStates() {
       return new Map(this.states);
     }
+
+    get postProcessSnapshot() {
+      return {
+        passes: [...this.states].map(([name, enabled]) => ({ name, enabled })),
+        selectedPassIndex: 0,
+      };
+    }
   },
 }));
 

@@ -3,6 +3,7 @@ import type {
   PostProcessSnapshot,
 } from "./pipeline/post-process/types";
 import type { PostProcessControls } from "./pipeline/post-process/controls";
+import { applyPostProcessSnapshot } from "./pipeline/post-process/state";
 import {
   calculateRenderSize,
   type ResolutionState,
@@ -37,7 +38,6 @@ export class Renderer {
   private callbacks: RendererCallbacks;
   private contextLost = false;
   private disposed = false;
-  private passStatesBeforeContextLoss = new Map<string, boolean>();
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -94,11 +94,10 @@ export class Renderer {
     shaderSources: RendererShaderSources,
     postPasses: PostProcessPassConfig[],
   ): string | null {
-    const states = this.resources.postProcessStates;
-    const restoredPasses = postPasses.map((pass) => ({
-      ...pass,
-      enabled: states.get(pass.name) ?? pass.enabled,
-    }));
+    const restoredPasses = applyPostProcessSnapshot(
+      postPasses,
+      this.resources.postProcessSnapshot.passes,
+    );
     let nextResources: RenderResources;
 
     try {
@@ -176,17 +175,12 @@ export class Renderer {
   private handleContextLost = (event: Event) => {
     event.preventDefault();
     this.contextLost = true;
-    this.passStatesBeforeContextLoss = this.resources.postProcessStates;
   };
 
   private handleContextRestored = () => {
     if (this.disposed) return;
 
-    const passes = this.postPasses.map((pass) => ({
-      ...pass,
-      enabled: this.passStatesBeforeContextLoss.get(pass.name) ?? pass.enabled,
-    }));
-    const error = this.updateShaders(this.shaderSources, passes);
+    const error = this.updateShaders(this.shaderSources, this.postPasses);
 
     if (error) {
       console.error("failed to restore WebGL resources", error);

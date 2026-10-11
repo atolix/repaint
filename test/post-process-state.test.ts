@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { PostProcessState } from "../src/pipeline/post-process/state";
+import {
+  applyPostProcessSnapshot,
+  PostProcessState,
+} from "../src/pipeline/post-process/state";
 
 describe("PostProcessState", () => {
   it("wraps selection in both directions", () => {
@@ -179,5 +182,36 @@ describe("PostProcessState", () => {
         },
       ]),
     ).toThrow("invalid post-process parameter: noise.amount");
+  });
+
+  it("applies enabled and parameter values to replacement configs", () => {
+    const parameter = {
+      key: "amount",
+      label: "Amount",
+      uniform: "u_amount",
+      min: 0,
+      max: 1,
+      step: 0.1,
+      defaultValue: 0.2,
+    };
+
+    expect(
+      applyPostProcessSnapshot(
+        [{ name: "noise", enabled: false, parameters: [parameter] }],
+        [
+          {
+            name: "noise",
+            enabled: true,
+            parameters: [{ ...parameter, value: 0.7 }],
+          },
+        ],
+      ),
+    ).toEqual([
+      {
+        name: "noise",
+        enabled: true,
+        parameters: [{ ...parameter, value: 0.7 }],
+      },
+    ]);
   });
 });

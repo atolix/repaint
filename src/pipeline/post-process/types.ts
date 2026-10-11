@@ -6,10 +6,11 @@ export type PostProcessNumberParameterConfig = {
   max: number;
   step: number;
   defaultValue: number;
+  value?: number;
 };
 
 export type PostProcessNumberParameterState =
-  PostProcessNumberParameterConfig & {
+  Omit<PostProcessNumberParameterConfig, "value"> & {
     value: number;
   };
 

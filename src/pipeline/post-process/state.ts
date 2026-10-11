@@ -1,6 +1,7 @@
 import type {
   PostProcessNumberParameterConfig,
   PostProcessNumberParameterState,
+  PostProcessPassConfig,
   PostProcessPassState,
   SelectedPass,
   ToggledPass,
@@ -13,6 +14,41 @@ type InitialPassState = Omit<PostProcessPassState, "parameters"> & {
 type MutablePassState = Omit<PostProcessPassState, "parameters"> & {
   parameters: PostProcessNumberParameterState[];
 };
+
+export function applyPostProcessSnapshot(
+  passes: readonly PostProcessPassConfig[],
+  snapshot: readonly PostProcessPassState[],
+): PostProcessPassConfig[];
+export function applyPostProcessSnapshot(
+  passes: readonly InitialPassState[],
+  snapshot: readonly PostProcessPassState[],
+): InitialPassState[];
+export function applyPostProcessSnapshot(
+  passes: readonly InitialPassState[],
+  snapshot: readonly PostProcessPassState[],
+) {
+  const previousByName = new Map(snapshot.map((pass) => [pass.name, pass]));
+
+  return passes.map((pass) => {
+    const previous = previousByName.get(pass.name);
+    const valuesByKey = new Map(
+      previous?.parameters?.map((parameter) => [parameter.key, parameter.value]),
+    );
+
+    return {
+      ...pass,
+      enabled: previous?.enabled ?? pass.enabled,
+      ...(pass.parameters
+        ? {
+          parameters: pass.parameters.map((parameter) => ({
+            ...parameter,
+            value: valuesByKey.get(parameter.key) ?? parameter.value,
+          })),
+        }
+        : {}),
+    };
+  });
+}
 
 export class PostProcessState {
   private passes: MutablePassState[];
@@ -153,7 +189,7 @@ function createPasses(passes: readonly InitialPassState[]): MutablePassState[] {
     enabled: pass.enabled,
     parameters: (pass.parameters ?? []).map((parameter) => ({
       ...parameter,
-      value: parameter.defaultValue,
+      value: initialParameterValue(parameter),
     })),
   }));
 }
@@ -202,6 +238,13 @@ function parameterId(passName: string, key: string) {
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
+}
+
+function initialParameterValue(parameter: PostProcessNumberParameterConfig) {
+  const value = parameter.value ?? parameter.defaultValue;
+  return Number.isFinite(value)
+    ? clamp(value, parameter.min, parameter.max)
+    : parameter.defaultValue;
 }
 
 function wrapIndex(index: number, length: number) {
