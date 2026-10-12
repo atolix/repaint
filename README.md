@@ -250,7 +250,7 @@ src/main.ts (composition root)
             └── framebuffer/draw helpers
 
 vite.config.ts
-└── dev-dashboard/dashboard.ts         (pure terminal formatting)
+└── dev/dashboard.ts                   (pure terminal formatting)
 ```
 
 `src/main.ts` is the composition root. It is the only runtime module that
@@ -278,7 +278,7 @@ Low-level modules in `src/gl/` own WebGL allocation, cleanup, and draw calls.
 They do not depend on renderer or application modules.
 
 The terminal dashboard follows the same boundary: the Vite plugin owns server
-events and output, while `src/dev-dashboard/dashboard.ts` is a pure formatter.
+events and output, while `src/dev/dashboard.ts` is a pure formatter.
 
 ## Project Layout
 
@@ -291,13 +291,14 @@ events and output, while `src/dev-dashboard/dashboard.ts` is a pure formatter.
 │   │   ├── index.ts
 │   │   ├── resources.ts
 │   │   └── size.ts
-│   ├── hmr.ts
 │   ├── style.css
 │   ├── debug/
 │   │   ├── controls.ts
 │   │   └── state.ts
-│   ├── dev-dashboard/
-│   │   └── dashboard.ts
+│   ├── dev/
+│   │   ├── dashboard.ts
+│   │   ├── pipeline-logger.ts
+│   │   └── shader-hmr.ts
 │   ├── gl/
 │   │   ├── draw.ts
 │   │   ├── framebuffer.ts
@@ -349,7 +350,7 @@ events and output, while `src/dev-dashboard/dashboard.ts` is a pure formatter.
 | `src/renderer/index.ts` | Owns the WebGL2 context lifecycle, canvas resize orchestration, and atomic resource replacement |
 | `src/renderer/resources.ts` | Owns and coordinates the replaceable scene and post-process resource set |
 | `src/renderer/size.ts` | Pure render-size calculation with DPR and texture-size limits |
-| `src/hmr.ts` | Small helpers for shader reloads and Vite websocket events |
+| `src/dev/shader-hmr.ts` | Small helpers for shader reloads and Vite websocket events |
 | `src/debug/controls.ts` | Browser keyboard adapter for debug-mode changes |
 | `src/debug/state.ts` | Pure debug-mode state |
 | `src/ui/parameter-panel.ts` | Collapsible DOM inspector for pass selection, toggles, and numeric parameters |
@@ -381,7 +382,7 @@ events and output, while `src/dev-dashboard/dashboard.ts` is a pure formatter.
 | `src/pipeline/post-process/plan.ts` | Pure texture-routing plan for enabled passes |
 | `src/pipeline/post-process/programs.ts` | Transactional compilation, replacement, and disposal of effect programs |
 | `src/pipeline/post-process/types.ts` | Shared post-process configuration and snapshot types |
-| `src/pipeline/log.ts` | Sends render-pipeline and resolution state to the Vite dev server logger |
+| `src/dev/pipeline-logger.ts` | Sends render-pipeline and resolution state to the Vite dev server logger |
 
 ### Shader Assets
 
@@ -404,7 +405,7 @@ events and output, while `src/dev-dashboard/dashboard.ts` is a pure formatter.
 | Path | Responsibility |
 | --- | --- |
 | `vite.config.ts` | Defines the Vite config and a custom ANSI dev-dashboard plugin |
-| `src/dev-dashboard/dashboard.ts` | Pure formatter for the terminal dashboard |
+| `src/dev/dashboard.ts` | Pure formatter for the terminal dashboard |
 | `scripts/browser-smoke.mjs` | Local headless-Chromium WebGL smoke test |
 | `tsconfig.json` | Application TypeScript compiler configuration |
 | `tsconfig.test.json` | Type-check configuration for tests and Vite config |

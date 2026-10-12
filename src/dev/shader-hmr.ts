@@ -1,5 +1,5 @@
-import type { ShaderIncludeGraph } from "./gl/include-resolver";
-import { resolveIncludes } from "./gl/include";
+import type { ShaderIncludeGraph } from "../gl/include-resolver";
+import { resolveIncludes } from "../gl/include";
 
 type HotEventPayload = Record<string, unknown>;
 

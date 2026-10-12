@@ -2,7 +2,7 @@ import { defineConfig, type Plugin } from "vite";
 import {
   renderDashboard,
   type DashboardState,
-} from "./src/dev-dashboard/dashboard.ts";
+} from "./src/dev/dashboard.ts";
 
 function dashboardPlugin(): Plugin {
   return {

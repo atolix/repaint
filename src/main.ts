@@ -3,12 +3,17 @@ import outputSource from "./shaders/output.frag?raw";
 import vertexSource from "./shaders/fullscreen.vert?raw";
 import { Renderer } from "./renderer";
 import { collectIncludeGraph, resolveIncludes, type ShaderIncludeRoot } from "./gl/include";
-import { logIncludeGraph, logShaderCompiled, logShaderError, reloadShader } from "./hmr";
+import {
+  logIncludeGraph,
+  logShaderCompiled,
+  logShaderError,
+  reloadShader,
+} from "./dev/shader-hmr";
 import {
   createPostProcessIncludeRoots,
   createPostProcessPasses,
 } from "./pipeline/post-process/config";
-import { logPipeline, logResolution } from "./pipeline/log";
+import { logPipeline, logResolution } from "./dev/pipeline-logger";
 import { bindPostProcessShortcuts } from "./pipeline/post-process/controls";
 import { bindDebugShortcut } from "./debug/controls";
 import { DebugState } from "./debug/state";

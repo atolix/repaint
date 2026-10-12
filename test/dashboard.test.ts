@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   renderDashboard,
   type DashboardState,
-} from "../src/dev-dashboard/dashboard";
+} from "../src/dev/dashboard";
 
 function state(overrides: Partial<DashboardState> = {}): DashboardState {
   return {

@@ -1,10 +1,10 @@
-import { sendHotEvent } from "../hmr";
+import { sendHotEvent } from "./shader-hmr";
 import {
   buildPostProcessRenderPlan,
   type RenderDestination,
   type TextureSource,
-} from "./post-process/plan";
-import type { PostProcessSnapshot } from "./post-process/types";
+} from "../pipeline/post-process/plan";
+import type { PostProcessSnapshot } from "../pipeline/post-process/types";
 import type { ResolutionState } from "../renderer/size";
 
 type PipelineLogPass = {
