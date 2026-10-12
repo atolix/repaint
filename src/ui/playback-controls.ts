@@ -7,16 +7,19 @@ const playbackSpeeds = [0.25, 0.5, 1, 2];
 
 export class PlaybackControls {
   private readonly clock: PlaybackClock;
+  private readonly savePng: (() => Promise<void>) | null;
   private readonly root: HTMLElement;
   private readonly toggle: HTMLButtonElement;
   private readonly step: HTMLButtonElement;
   private readonly reset: HTMLButtonElement;
+  private readonly exportPng: HTMLButtonElement | null;
   private readonly speed: HTMLSelectElement;
   private readonly time: HTMLOutputElement;
   private readonly unsubscribe: () => void;
 
-  constructor(clock: PlaybackClock) {
+  constructor(clock: PlaybackClock, savePng?: () => Promise<void>) {
     this.clock = clock;
+    this.savePng = savePng ?? null;
     this.root = document.createElement("aside");
     this.root.className = "playback-controls";
     this.root.setAttribute("aria-label", "Playback controls");
@@ -25,6 +28,9 @@ export class PlaybackControls {
     this.toggle = createButton("Pause", () => this.clock.togglePaused());
     this.step = createButton("Step", () => this.clock.stepForward());
     this.reset = createButton("Reset", () => this.clock.reset());
+    this.exportPng = this.savePng
+      ? createButton("Save PNG", this.handleSavePng)
+      : null;
     this.speed = createSpeedSelect();
     this.time = document.createElement("output");
     this.time.setAttribute("aria-label", "Elapsed time");
@@ -40,6 +46,7 @@ export class PlaybackControls {
     speedLabel.append(speedText, this.speed);
 
     this.root.append(timeSection, this.toggle, this.step, this.reset, speedLabel);
+    if (this.exportPng) this.root.append(this.exportPng);
     document.body.append(this.root);
     this.unsubscribe = this.clock.subscribe((state) => this.render(state));
   }
@@ -65,6 +72,23 @@ export class PlaybackControls {
 
   private handleSpeedChange = () => {
     this.clock.setSpeed(Number(this.speed.value));
+  };
+
+  private handleSavePng = async () => {
+    if (!this.savePng || !this.exportPng) return;
+
+    this.exportPng.disabled = true;
+    this.exportPng.textContent = "Saving…";
+
+    try {
+      await this.savePng();
+      this.exportPng.textContent = "Saved";
+    } catch (error) {
+      console.error("failed to save PNG", error);
+      this.exportPng.textContent = "Retry PNG";
+    } finally {
+      this.exportPng.disabled = false;
+    }
   };
 }
 

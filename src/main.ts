@@ -17,6 +17,7 @@ import { DebugIndicator } from "./ui/debug-indicator";
 import { PlaybackClock } from "./time/playback-clock";
 import { bindPlaybackShortcut } from "./time/controls";
 import { PlaybackControls } from "./ui/playback-controls";
+import { createPngFilename, downloadPng } from "./ui/png-export";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#canvas");
 if (!canvas) throw new Error("canvas element not found");
@@ -28,7 +29,6 @@ const resolvedOutputSource = resolveIncludes(
 );
 const debugState = new DebugState();
 const playbackClock = new PlaybackClock();
-const playbackControls = new PlaybackControls(playbackClock);
 const debugIndicator = new DebugIndicator();
 const unsubscribeDebugIndicator = debugState.subscribe((mode) => {
   debugIndicator.render(mode);
@@ -51,6 +51,9 @@ const renderer = new Renderer(
   },
   debugState,
 );
+const playbackControls = new PlaybackControls(playbackClock, async () => {
+  downloadPng(await renderer.capturePng(), createPngFilename());
+});
 parameterPanel = new ParameterPanel(() => renderer.postProcessControls);
 parameterPanel.render(renderer.postProcessSnapshot);
 const unbindPostProcessShortcuts = bindPostProcessShortcuts(

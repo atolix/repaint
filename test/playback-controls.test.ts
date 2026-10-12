@@ -4,6 +4,7 @@ import {
   getPlaybackCommand,
 } from "../src/time/controls";
 import { formatElapsedTime } from "../src/ui/playback-controls";
+import { createPngFilename } from "../src/ui/png-export";
 
 describe("getPlaybackCommand", () => {
   it("maps Space to pause/resume", () => {
@@ -81,6 +82,14 @@ describe("formatElapsedTime", () => {
     expect(formatElapsedTime(0)).toBe("00:00.00");
     expect(formatElapsedTime(65.439)).toBe("01:05.43");
     expect(formatElapsedTime(3_661.2)).toBe("01:01:01.20");
+  });
+});
+
+describe("createPngFilename", () => {
+  it("creates a portable timestamped filename", () => {
+    expect(createPngFilename(new Date("2026-10-12T03:04:05.678Z"))).toBe(
+      "repaint-2026-10-12T03-04-05Z.png",
+    );
   });
 });
 

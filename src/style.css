@@ -305,6 +305,9 @@ select {
   }
 
   .playback-controls {
+    width: calc(100vw - 16px);
+    box-sizing: border-box;
+    flex-wrap: wrap;
     bottom: 8px;
     left: 8px;
   }
