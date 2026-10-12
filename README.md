@@ -287,8 +287,8 @@ events and output, while `src/dev-dashboard/dashboard.ts` is a pure formatter.
 ├── index.html
 ├── src/
 │   ├── main.ts
-│   ├── renderer.ts
 │   ├── renderer/
+│   │   ├── index.ts
 │   │   ├── resources.ts
 │   │   └── size.ts
 │   ├── hmr.ts
@@ -347,7 +347,7 @@ events and output, while `src/dev-dashboard/dashboard.ts` is a pure formatter.
 | --- | --- |
 | `index.html` | Provides the fullscreen `<canvas id="canvas">` and loads `src/main.ts` |
 | `src/main.ts` | App bootstrap: loads shaders, resolves includes, creates `Renderer`, wires HMR handlers, and starts `requestAnimationFrame` |
-| `src/renderer.ts` | Owns the WebGL2 context lifecycle, canvas resize orchestration, and atomic resource replacement |
+| `src/renderer/index.ts` | Owns the WebGL2 context lifecycle, canvas resize orchestration, and atomic resource replacement |
 | `src/renderer/resources.ts` | Owns and coordinates the replaceable scene and post-process resource set |
 | `src/renderer/size.ts` | Pure render-size calculation with DPR and texture-size limits |
 | `src/hmr.ts` | Small helpers for shader reloads and Vite websocket events |

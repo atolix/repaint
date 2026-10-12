@@ -1,19 +1,19 @@
 import type {
   PostProcessPassConfig,
   PostProcessSnapshot,
-} from "./pipeline/post-process/types";
-import type { PostProcessControls } from "./pipeline/post-process/controls";
-import { applyPostProcessSnapshot } from "./pipeline/post-process/state";
+} from "../pipeline/post-process/types";
+import type { PostProcessControls } from "../pipeline/post-process/controls";
+import { applyPostProcessSnapshot } from "../pipeline/post-process/state";
 import {
   calculateRenderSize,
   type ResolutionState,
-} from "./renderer/size";
+} from "./size";
 import {
   RenderResources,
   type RendererShaderSources,
-} from "./renderer/resources";
+} from "./resources";
 
-export type { RendererShaderSources } from "./renderer/resources";
+export type { RendererShaderSources } from "./resources";
 
 const maxRenderDevicePixelRatio = 2;
 
