@@ -1,3 +1,5 @@
+export const debugModeCount = 7;
+
 export class DebugState {
   private currentMode = 0;
   private readonly listeners = new Set<(mode: number) => void>();
@@ -7,7 +9,7 @@ export class DebugState {
   }
 
   cycle() {
-    this.currentMode = (this.currentMode + 1) % 4;
+    this.currentMode = (this.currentMode + 1) % debugModeCount;
     this.notify();
     return this.currentMode;
   }

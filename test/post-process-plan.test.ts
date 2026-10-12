@@ -27,6 +27,31 @@ describe("buildPostProcessRenderPlan", () => {
     ]);
   });
 
+  it("can route the final pass to a texture for output diagnostics", () => {
+    expect(
+      buildPostProcessRenderPlan(
+        [
+          { name: "first", enabled: true },
+          { name: "second", enabled: true },
+        ],
+        true,
+      ),
+    ).toEqual([
+      {
+        passIndex: 0,
+        name: "first",
+        input: { kind: "scene" },
+        output: { kind: "framebuffer", index: 0 },
+      },
+      {
+        passIndex: 1,
+        name: "second",
+        input: { kind: "framebuffer", index: 0 },
+        output: { kind: "framebuffer", index: 1 },
+      },
+    ]);
+  });
+
   it("ping-pongs intermediate output and finishes on screen", () => {
     expect(
       buildPostProcessRenderPlan([

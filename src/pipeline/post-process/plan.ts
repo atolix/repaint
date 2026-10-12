@@ -17,6 +17,7 @@ export type PostProcessRenderStep = {
 
 export function buildPostProcessRenderPlan(
   passes: readonly PostProcessPassState[],
+  renderFinalToTexture = false,
 ): PostProcessRenderStep[] {
   const enabledPasses = passes
     .map((pass, passIndex) => ({ ...pass, passIndex }))
@@ -28,7 +29,7 @@ export function buildPostProcessRenderPlan(
     input: enabledIndex === 0
       ? { kind: "scene" }
       : { kind: "framebuffer", index: framebufferIndex(enabledIndex - 1) },
-    output: enabledIndex === enabledPasses.length - 1
+    output: enabledIndex === enabledPasses.length - 1 && !renderFinalToTexture
       ? { kind: "screen" }
       : { kind: "framebuffer", index: framebufferIndex(enabledIndex) },
   }));

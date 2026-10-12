@@ -116,4 +116,48 @@ describe("PostProcessPipeline parameters", () => {
     expect(pipeline.resetPassParameters("noise")).toBe(true);
     expect(pipeline.snapshot.passes[0].parameters?.[0].value).toBe(0.08);
   });
+
+  it.each([4, 6])(
+    "renders debug mode %i through the diagnostic output pass",
+    (debugMode) => {
+      const pipeline = new PostProcessPipeline(
+        {} as WebGL2RenderingContext,
+        { vertex: "vertex", output: "output" },
+        [pass],
+        vi.fn(),
+      );
+      const inputTexture = { kind: "scene" } as unknown as WebGLTexture;
+
+      pipeline.render({
+        inputTexture,
+        resolution: [800, 600],
+        time: 1,
+        debugMode,
+      });
+
+      expect(fakes.drawPass).toHaveBeenCalledTimes(2);
+      expect(fakes.drawPass).toHaveBeenNthCalledWith(
+        1,
+        {} as WebGL2RenderingContext,
+        expect.objectContaining({
+          program: fakes.passProgram,
+          framebuffer: expect.anything(),
+        }),
+      );
+      expect(fakes.drawPass).toHaveBeenNthCalledWith(
+        2,
+        {} as WebGL2RenderingContext,
+        expect.objectContaining({
+          program: fakes.outputProgram,
+          framebuffer: null,
+          uniforms: expect.objectContaining({
+            u_debugMode: { type: "1i", value: debugMode },
+          }),
+          textures: expect.arrayContaining([
+            { name: "u_originalScene", texture: inputTexture },
+          ]),
+        }),
+      );
+    },
+  );
 });

@@ -163,10 +163,14 @@ export class PostProcessPipeline {
       time,
       debugMode,
     } = options;
-    const plan = buildPostProcessRenderPlan(this.state.snapshot);
+    const renderFinalToTexture = debugMode === 4 || debugMode === 6;
+    const plan = buildPostProcessRenderPlan(
+      this.state.snapshot,
+      renderFinalToTexture,
+    );
 
     if (plan.length === 0) {
-      this.renderOutput(inputTexture, resolution);
+      this.renderOutput(inputTexture, inputTexture, resolution, debugMode);
       return;
     }
 
@@ -200,19 +204,41 @@ export class PostProcessPipeline {
         ],
       });
     }
+
+    if (renderFinalToTexture) {
+      const lastOutput = plan.at(-1)?.output;
+      if (lastOutput?.kind === "framebuffer") {
+        this.renderOutput(
+          this.framebuffers[lastOutput.index].texture,
+          inputTexture,
+          resolution,
+          debugMode,
+        );
+      }
+    }
   }
 
-  private renderOutput(inputTexture: WebGLTexture, resolution: [number, number]) {
+  private renderOutput(
+    inputTexture: WebGLTexture,
+    originalTexture: WebGLTexture,
+    resolution: [number, number],
+    debugMode: number,
+  ) {
     drawPass(this.gl, {
       program: this.programs.output,
       framebuffer: null,
       uniforms: {
         u_resolution: { type: "2f", value: resolution },
+        u_debugMode: { type: "1i", value: debugMode },
       },
       textures: [
         {
           name: "u_scene",
           texture: inputTexture,
+        },
+        {
+          name: "u_originalScene",
+          texture: originalTexture,
         },
       ],
     });

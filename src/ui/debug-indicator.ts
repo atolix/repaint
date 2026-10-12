@@ -2,6 +2,9 @@ const debugModeLabels = new Map([
   [1, "UV coordinates"],
   [2, "Radial distance"],
   [3, "UV grid"],
+  [4, "Luminance heatmap"],
+  [5, "Invalid color"],
+  [6, "Before / after"],
 ]);
 
 export class DebugIndicator {
