@@ -10,7 +10,7 @@ reported through the Vite terminal logs.
 
 ## Requirements
 
-- Node.js `^20.19.0` or `>=22.12.0`
+- Node.js `>=22.18.0`
 - npm
 - A browser with WebGL2 support
 
@@ -331,7 +331,7 @@ events and output, while `src/dev/dashboard.ts` is a pure formatter.
 │       ├── effects/
 │       └── lib/
 ├── scripts/
-│   └── browser-smoke.mjs
+│   └── browser-smoke.ts
 ├── test/
 │   └── *.test.ts
 ├── vite.config.ts
@@ -406,7 +406,7 @@ events and output, while `src/dev/dashboard.ts` is a pure formatter.
 | --- | --- |
 | `vite.config.ts` | Defines the Vite config and a custom ANSI dev-dashboard plugin |
 | `src/dev/dashboard.ts` | Pure formatter for the terminal dashboard |
-| `scripts/browser-smoke.mjs` | Local headless-Chromium WebGL smoke test |
+| `scripts/browser-smoke.ts` | Local headless-Chromium WebGL smoke test |
 | `tsconfig.json` | Application TypeScript compiler configuration |
 | `tsconfig.test.json` | Type-check configuration for tests and Vite config |
 | `package.json` | npm scripts and development dependencies |
