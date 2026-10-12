@@ -43,12 +43,26 @@ float fill(float distance, float softness) {
   return 1.0 - smoothstep(0.0, softness, distance);
 }
 
+float fillAA(float distance) {
+  float softness = max(fwidth(distance), 0.00001);
+  return 1.0 - smoothstep(-softness, softness, distance);
+}
+
 float stroke(float distance, float width) {
   return 1.0 - step(width, abs(distance));
 }
 
 float stroke(float distance, float width, float softness) {
   return 1.0 - smoothstep(width, width + softness, abs(distance));
+}
+
+float strokeAA(float distance, float width) {
+  float softness = max(fwidth(distance), 0.00001);
+  return 1.0 - smoothstep(
+    width - softness,
+    width + softness,
+    abs(distance)
+  );
 }
 
 float opUnion(float a, float b) {
