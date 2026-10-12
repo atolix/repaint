@@ -191,7 +191,9 @@ preserved across compatible HMR updates, and passed to shaders as uniforms.
 The bottom-left controls show elapsed shader time and operate on it without
 stopping the render loop. They provide pause/resume, reset to zero, one 60 fps
 frame step while paused, and `0.25×`, `0.5×`, `1×`, or `2×` playback speed.
-`Space` also pauses or resumes playback. Keeping the render loop active while
+The `Save PNG` button downloads the current canvas at its rendered pixel
+resolution. The browser interface is not included in the image. `Space` also
+pauses or resumes playback. Keeping the render loop active while
 paused lets UI and WebGL context events continue normally. While paused, use
 the right and left arrow keys to step forward or backward by one 60 fps frame;
 backward stepping stops at zero.

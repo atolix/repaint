@@ -68,6 +68,10 @@ try {
     throw new Error(`elapsed playback time was not rendered\n${result.stdout}`);
   }
 
+  if (!result.stdout.includes("Save PNG")) {
+    throw new Error(`PNG export control was not rendered\n${result.stdout}`);
+  }
+
   const consoleErrors = result.stderr
     .split("\n")
     .filter((line) => line.includes("INFO:CONSOLE"))
