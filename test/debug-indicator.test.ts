@@ -7,7 +7,7 @@ describe("getDebugModeLabel", () => {
     [2, "Radial distance"],
     [3, "UV grid"],
     [4, "Luminance heatmap"],
-    [5, "Invalid color"],
+    [5, "Non-finite values"],
     [6, "Before / after"],
   ])("describes debug mode %i", (mode, label) => {
     expect(getDebugModeLabel(mode)).toBe(label);

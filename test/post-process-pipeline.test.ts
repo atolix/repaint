@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { DEBUG_MODE } from "../src/debug/modes";
 import type { PostProcessPassConfig } from "../src/pipeline/post-process/types";
 
 const fakes = vi.hoisted(() => ({
@@ -117,7 +118,7 @@ describe("PostProcessPipeline parameters", () => {
     expect(pipeline.snapshot.passes[0].parameters?.[0].value).toBe(0.08);
   });
 
-  it.each([4, 6])(
+  it.each([DEBUG_MODE.luminanceHeatmap, DEBUG_MODE.beforeAfter])(
     "renders debug mode %i through the diagnostic output pass",
     (debugMode) => {
       const pipeline = new PostProcessPipeline(

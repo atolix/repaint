@@ -18,8 +18,8 @@ void main() {
   float d = length(uv);
   float pulse = 0.5 + 0.5 * sin(u_time);
   vec3 color = vec3(screenUv, pulse);
-  if (u_debugMode == 1) color = debugUV(uv);
-  if (u_debugMode == 2) color = debugDistance(d);
-  if (u_debugMode == 3) color = debugGrid(uv);
+  if (u_debugMode == DEBUG_MODE_UV_COORDINATES) color = debugUV(uv);
+  if (u_debugMode == DEBUG_MODE_RADIAL_DISTANCE) color = debugDistance(d);
+  if (u_debugMode == DEBUG_MODE_UV_GRID) color = debugGrid(uv);
   outColor = debugOutput(vec4(color, 1.0));
 }

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { DEBUG_MODE } from "../src/debug/modes";
 import { DebugState } from "../src/debug/state";
 
 describe("DebugState", () => {
@@ -6,9 +7,15 @@ describe("DebugState", () => {
     const state = new DebugState();
 
     expect(Array.from({ length: 7 }, () => state.cycle())).toEqual([
-      1, 2, 3, 4, 5, 6, 0,
+      DEBUG_MODE.uvCoordinates,
+      DEBUG_MODE.radialDistance,
+      DEBUG_MODE.uvGrid,
+      DEBUG_MODE.luminanceHeatmap,
+      DEBUG_MODE.nonFiniteValues,
+      DEBUG_MODE.beforeAfter,
+      DEBUG_MODE.normal,
     ]);
-    expect(state.mode).toBe(0);
+    expect(state.mode).toBe(DEBUG_MODE.normal);
   });
 
   it("notifies subscribers immediately and after changes", () => {

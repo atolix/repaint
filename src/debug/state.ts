@@ -1,20 +1,24 @@
-export const debugModeCount = 7;
+import {
+  DEBUG_MODE,
+  getNextDebugMode,
+  type DebugMode,
+} from "./modes";
 
 export class DebugState {
-  private currentMode = 0;
-  private readonly listeners = new Set<(mode: number) => void>();
+  private currentMode: DebugMode = DEBUG_MODE.normal;
+  private readonly listeners = new Set<(mode: DebugMode) => void>();
 
   get mode() {
     return this.currentMode;
   }
 
   cycle() {
-    this.currentMode = (this.currentMode + 1) % debugModeCount;
+    this.currentMode = getNextDebugMode(this.currentMode);
     this.notify();
     return this.currentMode;
   }
 
-  subscribe(listener: (mode: number) => void) {
+  subscribe(listener: (mode: DebugMode) => void) {
     this.listeners.add(listener);
     listener(this.currentMode);
 

@@ -1,4 +1,5 @@
 import { Framebuffer } from "../../gl/framebuffer";
+import { debugModeRequiresFinalTexture } from "../../debug/modes";
 import { drawPass } from "../../pass/draw";
 import { PostProcessState } from "./state";
 import { PostProcessPrograms } from "./programs";
@@ -163,7 +164,7 @@ export class PostProcessPipeline {
       time,
       debugMode,
     } = options;
-    const renderFinalToTexture = debugMode === 4 || debugMode === 6;
+    const renderFinalToTexture = debugModeRequiresFinalTexture(debugMode);
     const plan = buildPostProcessRenderPlan(
       this.state.snapshot,
       renderFinalToTexture,
