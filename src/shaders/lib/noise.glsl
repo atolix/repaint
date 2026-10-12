@@ -1,25 +1,30 @@
+// Hashes a 2D coordinate to a deterministic scalar in [0, 1).
 float hash12(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
   p += dot(p, p + 45.32);
   return fract(p.x * p.y);
 }
 
+// Hashes a 2D coordinate to a deterministic vector in [0, 1)^2.
 vec2 hash22(vec2 p) {
   vec3 q = fract(vec3(p.xyx) * vec3(123.34, 456.21, 345.45));
   q += dot(q, q + 45.32);
   return fract(vec2(q.x * q.y, q.y * q.z));
 }
 
+// Hashes a 3D coordinate to a deterministic scalar in [0, 1).
 float hash13(vec3 p) {
   p = fract(p * 0.1031);
   p += dot(p, p.yzx + 33.33);
   return fract((p.x + p.y) * p.z);
 }
 
+// Returns a lightweight deterministic pseudo-random value in [0, 1).
 float rand(vec2 n) {
   return fract(sin(dot(n, vec2(12.9898, 4.141414))) * 43562.6543);
 }
 
+// Samples smooth 2D value noise with a nominal [0, 1] range.
 float noise(vec2 p) {
   vec2 ip = floor(p);
   vec2 u = fract(p);
@@ -34,6 +39,7 @@ float noise(vec2 p) {
   return res * res;
 }
 
+// Samples smooth 3D value noise with a nominal [0, 1] range.
 float noise(vec3 p) {
   vec3 cell = floor(p);
   vec3 local = fract(p);
@@ -65,6 +71,7 @@ float noise(vec3 p) {
   return mix(z0, z1, blend.z);
 }
 
+// Sums four 2D noise octaves; this legacy variant is not amplitude-normalized.
 float fbm(vec2 p) {
   float f = 0.0;
 
@@ -82,6 +89,7 @@ float fbm(vec2 p) {
   return f;
 }
 
+// Sums and normalizes the requested number of 2D noise octaves.
 float fbm(vec2 p, int octaves) {
   float f = 0.0;
   float amplitude = 0.5;
@@ -97,6 +105,7 @@ float fbm(vec2 p, int octaves) {
   return f / max(totalAmplitude, 0.0001);
 }
 
+// Sums and normalizes the requested number of 3D noise octaves.
 float fbm(vec3 p, int octaves) {
   float f = 0.0;
   float amplitude = 0.5;
@@ -112,14 +121,17 @@ float fbm(vec3 p, int octaves) {
   return f / max(totalAmplitude, 0.0001);
 }
 
+// Samples normalized 3D fBm using five octaves.
 float fbm(vec3 p) {
   return fbm(p, 5);
 }
 
+// Folds 2D value noise into sharp ridges with a nominal [0, 1] range.
 float ridgedNoise(vec2 p) {
   return 1.0 - abs(noise(p) * 2.0 - 1.0);
 }
 
+// Sums and normalizes five octaves of ridged 2D noise.
 float ridgedFbm(vec2 p) {
   float f = 0.0;
   float amplitude = 0.5;
@@ -135,6 +147,7 @@ float ridgedFbm(vec2 p) {
   return f / totalAmplitude;
 }
 
+// Displaces p through two fBm stages, scaling the resulting offset by amount.
 vec2 domainWarp(vec2 p, float amount) {
   vec2 q = vec2(
     fbm(p + vec2(0.0, 0.0)),
@@ -148,6 +161,7 @@ vec2 domainWarp(vec2 p, float amount) {
   return p + (r * 2.0 - 1.0) * amount;
 }
 
+// Approximates a divergence-free vector field from 2D noise derivatives.
 vec2 curlNoise(vec2 p) {
   const float e = 0.001;
   float n1 = noise(p + vec2(0.0, e));
