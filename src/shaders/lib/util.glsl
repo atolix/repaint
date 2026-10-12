@@ -42,6 +42,29 @@ vec2 rotate2D(vec2 p, float angle) {
   return mat2(c, -s, s, c) * p;
 }
 
+vec2 rotateAround(vec2 p, vec2 center, float angle) {
+  return center + rotate2D(p - center, angle);
+}
+
+vec2 mirrorRepeat(vec2 p, vec2 spacing) {
+  vec2 safeSpacing = max(abs(spacing), vec2(0.00001));
+  vec2 cell = floor(p / safeSpacing);
+  vec2 local = mod(p, safeSpacing);
+  vec2 mirrored = mix(local, safeSpacing - local, mod(cell, 2.0));
+  return mirrored - safeSpacing * 0.5;
+}
+
+vec2 mirrorRepeat(vec2 p, float spacing) {
+  return mirrorRepeat(p, vec2(spacing));
+}
+
+vec2 polarRepeat(vec2 p, float repetitions) {
+  float count = max(abs(repetitions), 1.0);
+  float sector = TAU / count;
+  float angle = mod(atan(p.y, p.x) + sector * 0.5, sector) - sector * 0.5;
+  return vec2(cos(angle), sin(angle)) * length(p);
+}
+
 vec2 getScreenUV() {
   return gl_FragCoord.xy / u_resolution;
 }
