@@ -15,5 +15,5 @@ void main() {
   vec2 uv = gl_FragCoord.xy / u_resolution;
   vec3 color = texture(u_scene, uv).rgb;
   color = mix(color, 1.0 - color, u_amount);
-  outColor = vec4(color, 1.0);
+  outColor = debugOutput(vec4(color, 1.0));
 }

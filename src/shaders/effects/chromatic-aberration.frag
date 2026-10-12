@@ -20,5 +20,5 @@ void main() {
   float green = texture(u_scene, uv).g;
   float blue = texture(u_scene, uv - offset).b;
 
-  outColor = vec4(red, green, blue, 1.0);
+  outColor = debugOutput(vec4(red, green, blue, 1.0));
 }

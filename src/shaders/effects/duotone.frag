@@ -20,5 +20,5 @@ void main() {
   vec3 highlight = vec3(1.0, 0.72, 0.28);
 
   vec3 duotone = mix(shadow, highlight, tone);
-  outColor = vec4(mix(color, duotone, u_amount), 1.0);
+  outColor = debugOutput(vec4(mix(color, duotone, u_amount), 1.0));
 }

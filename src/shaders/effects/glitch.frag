@@ -28,5 +28,7 @@ void main() {
   float staticNoise = (hash12(gl_FragCoord.xy + u_time * 120.0) - 0.5)
     * 0.08 * u_strength * gate;
 
-  outColor = vec4(saturate(vec3(red, green, blue) + staticNoise), 1.0);
+  outColor = debugOutput(
+    vec4(saturate(vec3(red, green, blue) + staticNoise), 1.0)
+  );
 }

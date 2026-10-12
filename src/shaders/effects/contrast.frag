@@ -16,5 +16,5 @@ void main() {
   vec2 uv = getScreenUV();
   vec3 color = texture(u_scene, uv).rgb;
 
-  outColor = vec4(saturate(contrast(color, u_contrast)), 1.0);
+  outColor = debugOutput(vec4(saturate(contrast(color, u_contrast)), 1.0));
 }

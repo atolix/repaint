@@ -20,5 +20,5 @@ void main() {
     cos((uv.x * 14.0 * u_frequency) - u_time * 1.8 * u_speed)
   ) * u_amplitude;
 
-  outColor = texture(u_scene, saturate(uv + wave));
+  outColor = debugOutput(texture(u_scene, saturate(uv + wave)));
 }

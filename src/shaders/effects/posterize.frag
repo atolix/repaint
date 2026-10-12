@@ -17,5 +17,5 @@ void main() {
   float steps = max(1.0, u_levels - 1.0);
   color = floor(color * steps + 0.5) / steps;
 
-  outColor = vec4(color, 1.0);
+  outColor = debugOutput(vec4(color, 1.0));
 }

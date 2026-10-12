@@ -35,5 +35,5 @@ void main() {
 
   color = mix(color * 0.45, vec3(edge), u_mix);
 
-  outColor = vec4(saturate(color), 1.0);
+  outColor = debugOutput(vec4(saturate(color), 1.0));
 }

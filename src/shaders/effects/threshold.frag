@@ -17,5 +17,5 @@ void main() {
   vec3 color = texture(u_scene, uv).rgb;
   float mask = step(u_threshold, luminance(color));
 
-  outColor = vec4(vec3(mask), 1.0);
+  outColor = debugOutput(vec4(vec3(mask), 1.0));
 }

@@ -22,5 +22,5 @@ void main() {
 
   color = mix(color, saturate(sepia), u_amount);
 
-  outColor = vec4(color, 1.0);
+  outColor = debugOutput(vec4(color, 1.0));
 }

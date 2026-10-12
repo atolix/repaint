@@ -20,5 +20,5 @@ void main() {
     * step(distortedUv.y, 1.0);
   vec3 color = texture(u_scene, saturate(distortedUv)).rgb;
 
-  outColor = vec4(color * bounds, 1.0);
+  outColor = debugOutput(vec4(color * bounds, 1.0));
 }

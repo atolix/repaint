@@ -20,5 +20,5 @@ void main() {
   float angle = falloff * u_angle;
   vec2 swirledUv = 0.5 + rotate2D(centered, angle);
 
-  outColor = texture(u_scene, saturate(swirledUv));
+  outColor = debugOutput(texture(u_scene, saturate(swirledUv)));
 }

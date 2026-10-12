@@ -16,5 +16,5 @@ void main() {
   vec2 pixelSize = vec2(u_pixelSize) / u_resolution;
   vec2 pixelUv = (floor(uv / pixelSize) + 0.5) * pixelSize;
 
-  outColor = texture(u_scene, pixelUv);
+  outColor = debugOutput(texture(u_scene, pixelUv));
 }

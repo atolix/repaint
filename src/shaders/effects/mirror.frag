@@ -17,5 +17,5 @@ void main() {
   float mirroredX = 1.0 - abs(uv.x * 2.0 - 1.0);
   uv.x = mix(uv.x, mirroredX, u_amount);
 
-  outColor = texture(u_scene, uv);
+  outColor = debugOutput(texture(u_scene, uv));
 }

@@ -22,5 +22,5 @@ void main() {
   vec3 base = texture(u_scene, uv).rgb;
   vec3 color = mix(vec3(relief), base * relief, u_mix);
 
-  outColor = vec4(saturate(color), 1.0);
+  outColor = debugOutput(vec4(saturate(color), 1.0));
 }

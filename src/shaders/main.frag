@@ -19,5 +19,5 @@ void main() {
   if (u_debugMode == 1) color = debugUV(uv);
   if (u_debugMode == 2) color = debugDistance(d);
   if (u_debugMode == 3) color = debugGrid(uv);
-  outColor = vec4(color, 1.0);
+  outColor = debugOutput(vec4(color, 1.0));
 }
