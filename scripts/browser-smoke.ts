@@ -48,6 +48,10 @@ try {
     throw new Error(`effect description flyout was not initialized\n${result.stdout}`);
   }
 
+  if (result.stdout.includes("parameter-panel-toggle")) {
+    throw new Error(`effect inspector toggle should not be rendered\n${result.stdout}`);
+  }
+
   if (!result.stdout.includes("photographic negative look")) {
     throw new Error(`effect description was not rendered\n${result.stdout}`);
   }

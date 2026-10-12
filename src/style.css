@@ -41,8 +41,7 @@ select {
 }
 
 .parameter-panel,
-.parameter-panel-parameters,
-.parameter-panel-toggle {
+.parameter-panel-parameters {
   position: fixed;
   right: 16px;
   z-index: 10;
@@ -165,8 +164,7 @@ select {
   text-overflow: ellipsis;
 }
 
-.parameter-panel-heading button,
-.parameter-panel-toggle {
+.parameter-panel-heading button {
   border: 1px solid rgb(154 235 205 / 26%);
   border-radius: 6px;
   color: #b8cbc4;
@@ -209,12 +207,6 @@ select {
   padding: 4px 5px;
   color: #effff9;
   background: rgb(0 0 0 / 28%);
-}
-
-.parameter-panel-toggle {
-  right: 16px;
-  bottom: 16px;
-  padding: 7px 10px;
 }
 
 .playback-controls {
@@ -297,11 +289,6 @@ select {
     right: 8px;
     width: calc(100vw - 16px);
     max-height: calc(100vh - 56px);
-  }
-
-  .parameter-panel-toggle {
-    right: 8px;
-    bottom: 8px;
   }
 
   .playback-controls {

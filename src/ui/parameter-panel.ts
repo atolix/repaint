@@ -13,7 +13,6 @@ export class ParameterPanel {
   private readonly getControls: () => PostProcessControls;
   private readonly root: HTMLElement;
   private readonly parameterRoot: HTMLElement;
-  private readonly toggle: HTMLButtonElement;
   private readonly parameterInputs = new Map<string, ParameterInputs>();
   private selectedPassButton: HTMLButtonElement | null = null;
   private hasFlyout = false;
@@ -32,13 +31,7 @@ export class ParameterPanel {
     this.parameterRoot.setAttribute("aria-label", "Effect parameters");
     this.parameterRoot.addEventListener("keydown", (event) => event.stopPropagation());
 
-    this.toggle = document.createElement("button");
-    this.toggle.type = "button";
-    this.toggle.className = "parameter-panel-toggle";
-    this.toggle.textContent = "Effects";
-    this.toggle.addEventListener("click", this.toggleOpen);
-
-    document.body.append(this.root, this.parameterRoot, this.toggle);
+    document.body.append(this.root, this.parameterRoot);
     window.addEventListener("keydown", this.handleWindowKeyDown);
     this.updateVisibility();
   }
@@ -64,10 +57,8 @@ export class ParameterPanel {
 
   dispose() {
     window.removeEventListener("keydown", this.handleWindowKeyDown);
-    this.toggle.removeEventListener("click", this.toggleOpen);
     this.root.remove();
     this.parameterRoot.remove();
-    this.toggle.remove();
   }
 
   private createHeader() {
@@ -206,8 +197,6 @@ export class ParameterPanel {
   private updateVisibility() {
     this.root.hidden = !this.open;
     this.parameterRoot.hidden = !this.open || !this.hasFlyout;
-    this.toggle.setAttribute("aria-expanded", String(this.open));
-    this.toggle.textContent = this.open ? "Hide effects" : "Show effects";
   }
 
   private ensureSelectionVisible() {

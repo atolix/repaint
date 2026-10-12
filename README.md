@@ -172,10 +172,10 @@ Use the arrow or bracket controls to select effects beyond the first nine.
 
 ## Effect Inspector
 
-The inspector is overlaid on the right side of the canvas. Press `p` to show it,
-press `q` to hide it, or use its bottom-right button. Parameters for the selected
-effect open in a top-aligned flyout to the left of the pass list, so moving the
-selection does not move the controls vertically. It provides:
+The inspector is overlaid on the right side of the canvas. Press `p` to show it
+and `q` to hide it. Parameters for the selected effect open in a top-aligned
+flyout to the left of the pass list, so moving the selection does not move the
+controls vertically. It provides:
 
 - selection and ON/OFF controls for every post-process pass
 - a description of the selected effect
