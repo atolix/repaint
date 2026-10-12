@@ -165,8 +165,9 @@ export class PostProcessPipeline {
       debugMode,
     } = options;
     const renderFinalToTexture = debugModeRequiresFinalTexture(debugMode);
+    const passes = this.state.snapshot;
     const plan = buildPostProcessRenderPlan(
-      this.state.snapshot,
+      passes,
       renderFinalToTexture,
     );
 
@@ -176,7 +177,7 @@ export class PostProcessPipeline {
     }
 
     for (const step of plan) {
-      const passState = this.state.snapshot[step.passIndex];
+      const passState = passes[step.passIndex];
       const outputFramebuffer = this.resolveDestination(step.output);
 
       if (outputFramebuffer) {
