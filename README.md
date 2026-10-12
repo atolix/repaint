@@ -399,6 +399,7 @@ events and output, while `src/dev/dashboard.ts` is a pure formatter.
 | `src/shaders/lib/noise.glsl` | Noise and hash helpers |
 | `src/shaders/lib/sdf.glsl` | Signed-distance-field helpers |
 | `src/shaders/lib/easing.glsl` | Easing functions |
+| `src/shaders/lib/animation.glsl` | Looping, ping-pong, and pulse animation helpers |
 
 ### Tooling And Documentation
 
