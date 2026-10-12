@@ -203,10 +203,10 @@ backward stepping stops at zero.
 When debug mode 1–6 is active, a label in the top-left corner identifies the
 current visualization. Modes 1–3 show UV coordinates, radial distance, and a UV
 grid. Mode 4 maps final-output luminance from dark blue through green and yellow
-to bright red. Mode 5 marks invalid shader output: magenta for NaN, cyan for
-infinity, blue for negative values, and amber for values above one. Mode 6
-shows the original scene on the left and the fully post-processed result on the
-right. The label is hidden in normal mode 0.
+to bright red. Mode 5 marks non-finite shader output: magenta for NaN and cyan
+for infinity. Finite values outside the display range are left unchanged. Mode
+6 shows the original scene on the left and the fully post-processed result on
+the right. The label is hidden in normal mode 0.
 
 To add an effect, create a fragment shader in `src/shaders/effects/`, then add
 it to `postProcessDefinitions` in `src/pipeline/post-process/config.ts`.
