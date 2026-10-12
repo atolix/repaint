@@ -11,10 +11,12 @@ uniform int u_debugMode;
 
 out vec4 outColor;
 
+// Computes Rec. 709 luminance locally because this pass is standalone.
 float outputLuminance(vec3 color) {
   return dot(color, vec3(0.2126, 0.7152, 0.0722));
 }
 
+// Maps a normalized scalar to a blue-to-red diagnostic color ramp.
 vec3 heatmap(float value) {
   vec3 color = vec3(
     1.5 - abs(4.0 * value - 3.0),

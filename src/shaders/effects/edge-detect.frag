@@ -12,6 +12,7 @@ uniform float u_mix;
 
 out vec4 outColor;
 
+// Samples luminance at a pixel offset from normalized coordinate uv.
 float sampleLuma(vec2 uv, vec2 offset) {
   return luminance(texture(u_scene, uv + offset / u_resolution).rgb);
 }
