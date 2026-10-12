@@ -10,6 +10,12 @@ vec2 hash22(vec2 p) {
   return fract(vec2(q.x * q.y, q.y * q.z));
 }
 
+float hash13(vec3 p) {
+  p = fract(p * 0.1031);
+  p += dot(p, p.yzx + 33.33);
+  return fract((p.x + p.y) * p.z);
+}
+
 float rand(vec2 n) {
   return fract(sin(dot(n, vec2(12.9898, 4.141414))) * 43562.6543);
 }
@@ -26,6 +32,37 @@ float noise(vec2 p) {
   );
 
   return res * res;
+}
+
+float noise(vec3 p) {
+  vec3 cell = floor(p);
+  vec3 local = fract(p);
+  vec3 blend = local * local * (3.0 - 2.0 * local);
+
+  float z0 = mix(
+    mix(hash13(cell), hash13(cell + vec3(1.0, 0.0, 0.0)), blend.x),
+    mix(
+      hash13(cell + vec3(0.0, 1.0, 0.0)),
+      hash13(cell + vec3(1.0, 1.0, 0.0)),
+      blend.x
+    ),
+    blend.y
+  );
+  float z1 = mix(
+    mix(
+      hash13(cell + vec3(0.0, 0.0, 1.0)),
+      hash13(cell + vec3(1.0, 0.0, 1.0)),
+      blend.x
+    ),
+    mix(
+      hash13(cell + vec3(0.0, 1.0, 1.0)),
+      hash13(cell + vec3(1.0, 1.0, 1.0)),
+      blend.x
+    ),
+    blend.y
+  );
+
+  return mix(z0, z1, blend.z);
 }
 
 float fbm(vec2 p) {
@@ -58,6 +95,25 @@ float fbm(vec2 p, int octaves) {
   }
 
   return f / max(totalAmplitude, 0.0001);
+}
+
+float fbm(vec3 p, int octaves) {
+  float f = 0.0;
+  float amplitude = 0.5;
+  float totalAmplitude = 0.0;
+
+  for (int i = 0; i < octaves; i++) {
+    f += noise(p) * amplitude;
+    totalAmplitude += amplitude;
+    p *= 2.0;
+    amplitude *= 0.5;
+  }
+
+  return f / max(totalAmplitude, 0.0001);
+}
+
+float fbm(vec3 p) {
+  return fbm(p, 5);
 }
 
 float ridgedNoise(vec2 p) {
