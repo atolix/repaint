@@ -38,6 +38,7 @@ export class Renderer {
   private callbacks: RendererCallbacks;
   private contextLost = false;
   private disposed = false;
+  private lastTimeSeconds = 0;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -146,11 +147,33 @@ export class Renderer {
     const resolution = this.resize();
     if (!resolution) return;
 
+    this.lastTimeSeconds = timeSeconds;
     const debugMode = this.debugState.mode;
     this.resources.render({
       resolution,
       time: timeSeconds,
       debugMode,
+    });
+  }
+
+  capturePng() {
+    if (this.contextLost) {
+      return Promise.reject(new Error("cannot capture while WebGL context is lost"));
+    }
+    if (this.disposed) {
+      return Promise.reject(new Error("cannot capture a disposed renderer"));
+    }
+
+    this.render(this.lastTimeSeconds);
+
+    return new Promise<Blob>((resolve, reject) => {
+      this.canvas.toBlob((blob) => {
+        if (blob) {
+          resolve(blob);
+        } else {
+          reject(new Error("failed to encode canvas as PNG"));
+        }
+      }, "image/png");
     });
   }
 

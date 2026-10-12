@@ -74,6 +74,8 @@ class FakeCanvas extends EventTarget {
   height = 1;
   clientWidth = 640;
   clientHeight = 360;
+  encodedBlob = new Blob(["png"], { type: "image/png" });
+  toBlob = vi.fn((callback: BlobCallback) => callback(this.encodedBlob));
 
   readonly gl = {
     MAX_TEXTURE_SIZE: 0x0d33,
@@ -200,5 +202,21 @@ describe("Renderer resource lifecycle", () => {
     expect(resources.dispose).toHaveBeenCalledOnce();
     expect(resources.render).not.toHaveBeenCalled();
     expect(fakes.instances).toHaveLength(1);
+  });
+
+  it("redraws the current frame immediately before PNG capture", async () => {
+    const { canvas, renderer } = createRenderer();
+    const resources = fakes.instances[0];
+    renderer.render(2.5);
+    resources.render.mockClear();
+
+    await expect(renderer.capturePng()).resolves.toBe(canvas.encodedBlob);
+
+    expect(resources.render).toHaveBeenCalledWith({
+      resolution: [640, 360],
+      time: 2.5,
+      debugMode: 2,
+    });
+    expect(canvas.toBlob).toHaveBeenCalledWith(expect.any(Function), "image/png");
   });
 });
