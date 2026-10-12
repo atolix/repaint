@@ -35,7 +35,7 @@ export class ParameterPanel {
     this.toggle = document.createElement("button");
     this.toggle.type = "button";
     this.toggle.className = "parameter-panel-toggle";
-    this.toggle.textContent = "Controls";
+    this.toggle.textContent = "Effects";
     this.toggle.addEventListener("click", this.toggleOpen);
 
     document.body.append(this.root, this.parameterRoot, this.toggle);
@@ -207,7 +207,7 @@ export class ParameterPanel {
     this.root.hidden = !this.open;
     this.parameterRoot.hidden = !this.open || !this.hasFlyout;
     this.toggle.setAttribute("aria-expanded", String(this.open));
-    this.toggle.textContent = this.open ? "Hide controls" : "Show controls";
+    this.toggle.textContent = this.open ? "Hide effects" : "Show effects";
   }
 
   private ensureSelectionVisible() {
