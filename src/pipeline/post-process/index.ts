@@ -1,6 +1,6 @@
 import { Framebuffer } from "../../gl/framebuffer";
 import { debugModeRequiresFinalTexture } from "../../debug/modes";
-import { drawPass } from "../../pass/draw";
+import { drawPass } from "../../gl/draw";
 import { PostProcessState } from "./state";
 import { PostProcessPrograms } from "./programs";
 import type {

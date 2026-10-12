@@ -16,7 +16,7 @@ vi.mock("../src/gl/framebuffer", () => ({
   },
 }));
 
-vi.mock("../src/pass/draw", () => ({
+vi.mock("../src/gl/draw", () => ({
   drawPass: fakes.drawPass,
 }));
 

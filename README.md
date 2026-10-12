@@ -274,8 +274,8 @@ enabled state, and parameter values to `PostProcessState`, routing to
 The state and planning modules have no WebGL or browser dependency, so edge
 cases can be tested without a canvas.
 
-Low-level modules in `src/gl/` and `src/pass/` own WebGL allocation, cleanup,
-and draw calls. They do not depend on renderer or application modules.
+Low-level modules in `src/gl/` own WebGL allocation, cleanup, and draw calls.
+They do not depend on renderer or application modules.
 
 The terminal dashboard follows the same boundary: the Vite plugin owns server
 events and output, while `src/dev-dashboard/dashboard.ts` is a pure formatter.
@@ -299,12 +299,11 @@ events and output, while `src/dev-dashboard/dashboard.ts` is a pure formatter.
 │   ├── dev-dashboard/
 │   │   └── dashboard.ts
 │   ├── gl/
+│   │   ├── draw.ts
 │   │   ├── framebuffer.ts
 │   │   ├── include.ts
 │   │   ├── include-resolver.ts
 │   │   └── program.ts
-│   ├── pass/
-│   │   └── draw.ts
 │   ├── time/
 │   │   ├── controls.ts
 │   │   └── playback-clock.ts
@@ -368,7 +367,7 @@ events and output, while `src/dev-dashboard/dashboard.ts` is a pure formatter.
 | `src/gl/framebuffer.ts` | Manages framebuffer-backed textures and resizes render targets |
 | `src/gl/include.ts` | Resolves GLSL include directives from eagerly imported shader modules and reports dependency graphs |
 | `src/gl/include-resolver.ts` | Pure include-resolution and include-graph logic used by the runtime and unit tests |
-| `src/pass/draw.ts` | Shared fullscreen draw helper for binding framebuffers, uniforms, textures, and issuing `drawArrays` |
+| `src/gl/draw.ts` | Shared fullscreen draw helper for binding framebuffers, uniforms, textures, and issuing `drawArrays` |
 
 ### Render Pipeline
 

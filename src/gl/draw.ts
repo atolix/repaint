@@ -1,4 +1,4 @@
-import { Framebuffer } from "../gl/framebuffer";
+import { Framebuffer } from "./framebuffer";
 
 const uniformLocationCache = new WeakMap<
   WebGLProgram,

@@ -1,6 +1,6 @@
 import { Framebuffer } from "../../gl/framebuffer";
 import { createProgram } from "../../gl/program";
-import { drawPass } from "../../pass/draw";
+import { drawPass } from "../../gl/draw";
 
 type ScenePassRenderOptions = {
   resolution: [number, number];
